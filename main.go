@@ -7,12 +7,10 @@ import (
 )
 
 func homeHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	fmt.Fprint(w, "<h1 style=\"color:pink\">Hello, welcome my goblog</h1>")
 }
 
 func aboutHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	fmt.Fprint(w, "<h1>This blog just for record leanring golang, if you have any quetion please contact "+
 		"<a href=\"mailto:developbiao@gmail.com\">developbiao@gmail.com</a></h1>")
 }
@@ -37,6 +35,17 @@ func articlesStoreHandler(w http.ResponseWriter, r *http.Request) {
 
 func articlesIndexHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "Visit article")
+}
+
+// force add html header
+func forceHTMLMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// 1. Set header
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
+		// 2. Continue request
+		next.ServeHTTP(w, r)
+	})
 }
 
 func main() {
@@ -67,6 +76,9 @@ func main() {
 			fmt.Fprint(w, "From [POST] request")
 		}
 	})
+
+	// Middleware force content is HTML
+	router.Use(forceHTMLMiddleware)
 
 	http.ListenAndServe(":3000", router)
 }
