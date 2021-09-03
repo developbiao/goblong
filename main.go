@@ -13,6 +13,7 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "<h1>This blog just for record leanring golang, if you have any quetion please contact "+
 			"<a href=\"mailto:developbiao@gmail.com\">developbiao@gmail.com</a></h1>")
 	} else {
+		w.WriteHeader(http.StatusNotFound)
 		fmt.Fprint(w, "<h1>Reqeust not found page :(</h1>"+
 			"<p>If you have any doubts, please contact us. </p>")
 
