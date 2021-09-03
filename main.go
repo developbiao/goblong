@@ -2,19 +2,13 @@ package main
 
 import (
 	"fmt"
+	"github.com/gorilla/mux"
 	"net/http"
 )
 
-func defaultHandler(w http.ResponseWriter, r *http.Request) {
+func homeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if r.URL.Path == "/" {
-		fmt.Fprint(w, "<h1 style=\"color:pink\">Hello, welcome my goblog</h1>")
-	} else {
-		w.WriteHeader(http.StatusNotFound)
-		fmt.Fprint(w, "<h1>Reqeust not found page :(</h1>"+
-			"<p>If you have any doubts, please contact us. </p>")
-
-	}
+	fmt.Fprint(w, "<h1 style=\"color:pink\">Hello, welcome my goblog</h1>")
 }
 
 func aboutHandler(w http.ResponseWriter, r *http.Request) {
@@ -23,10 +17,47 @@ func aboutHandler(w http.ResponseWriter, r *http.Request) {
 		"<a href=\"mailto:developbiao@gmail.com\">developbiao@gmail.com</a></h1>")
 }
 
+func notFoundHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(http.StatusNotFound)
+	fmt.Fprint(w, "<h1>Reqeust not found page :(</h1>"+
+		"<p>If you have any doubts, please contact us. </p>")
+
+}
+
+func articlesShowHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	fmt.Fprint(w, "Article ID: "+id)
+}
+
+func articlesStoreHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "Store new article")
+}
+
+func articlesIndexHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "Visit article")
+}
+
 func main() {
-	router := http.NewServeMux()
-	router.HandleFunc("/", defaultHandler)
-	router.HandleFunc("/about", aboutHandler)
+	router := mux.NewRouter()
+	router.HandleFunc("/", homeHandler).Methods("GET").Name("home")
+	router.HandleFunc("/about", aboutHandler).Methods("GET").Name("about")
+
+	// Articles router
+	router.HandleFunc("/articles/{id:[0-9]+}",
+		articlesShowHandler).Methods("GET").Name("articles.show")
+	router.HandleFunc("/articles", articlesIndexHandler).Methods("GET").Name("articles.index")
+	router.HandleFunc("/articles", articlesStoreHandler).Methods("POST").Name("articles.store")
+
+	// Custom 404 page
+	router.NotFoundHandler = http.HandlerFunc(notFoundHandler)
+
+	// Get router name URL example
+	homeURL, _ := router.Get("home").URL()
+	fmt.Println("homeURL: ", homeURL)
+	articleURL, _ := router.Get("articles.show").URL("id", "23")
+	fmt.Println("articleURL: ", articleURL)
 
 	router.HandleFunc("/articles", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
