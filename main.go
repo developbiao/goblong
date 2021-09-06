@@ -4,10 +4,19 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
+	"net/url"
 	"strings"
+	"unicode/utf8"
 )
 
 var router = mux.NewRouter()
+
+// ArticlesFormData struct
+type ArticlesFormData struct {
+	Title, Body string
+	URL         *url.URL
+	Errors      map[string]string
+}
 
 func homeHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "<h1 style=\"color:pink\">Hello, welcome my goblog</h1>")
@@ -34,22 +43,35 @@ func articlesShowHandler(w http.ResponseWriter, r *http.Request) {
 
 // Store article information
 func articlesStoreHandler(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
-		fmt.Fprint(w, "Please provide correct data")
-		return
+	title := r.PostFormValue("title")
+	body := r.PostFormValue("body")
+
+	errors := make(map[string]string)
+
+	// Validation title
+	if title == "" {
+		errors["title"] = "Title can'not empty"
+	} else if utf8.RuneCountInString(title) < 3 || utf8.RuneCountInString(title) > 40 {
+		errors["title"] = "Title length between 3~40"
 	}
 
-	title := r.PostForm.Get("title")
+	// Validation body
+	if body == "" {
+		errors["body"] = "Body can'not empty"
+	} else if utf8.RuneCountInString(body) < 10 {
+		errors["body"] = "Body length must great than 10 character"
+	}
 
-	fmt.Fprintf(w, "POST PostFrom: %v <br/>", r.PostForm)
-	fmt.Fprintf(w, "POST From: %v <br/>", r.Form)
-	fmt.Fprintf(w, "title value: %v", title)
+	if len(errors) == 0 {
+		fmt.Fprint(w, "Valid!")
+		fmt.Fprintf(w, "title value: %v \n", title)
+		fmt.Fprintf(w, "title length: %v \n", utf8.RuneCountInString(title))
+		fmt.Fprintf(w, "body value: %v \n", body)
+		fmt.Fprintf(w, "body length: %v \n", utf8.RuneCountInString(body))
+	} else {
+		fmt.Fprint(w, "Validation errors detected", errors)
+	}
 
-	fmt.Fprintf(w, "r From title value: %v <br/>", r.FormValue("title"))
-	fmt.Fprintf(w, "r PostFrom title value: %v <br/>", r.PostFormValue("title"))
-	fmt.Fprintf(w, "r Form agent value: %v<br/>", r.FormValue("agent"))
-	fmt.Fprintf(w, "r PostForm agent value: %v<br/>", r.FormValue("agent"))
 }
 
 func articlesIndexHandler(w http.ResponseWriter, r *http.Request) {
