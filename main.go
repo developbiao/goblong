@@ -32,8 +32,24 @@ func articlesShowHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "Article ID: "+id)
 }
 
+// Store article information
 func articlesStoreHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Store new article")
+	err := r.ParseForm()
+	if err != nil {
+		fmt.Fprint(w, "Please provide correct data")
+		return
+	}
+
+	title := r.PostForm.Get("title")
+
+	fmt.Fprintf(w, "POST PostFrom: %v <br/>", r.PostForm)
+	fmt.Fprintf(w, "POST From: %v <br/>", r.Form)
+	fmt.Fprintf(w, "title value: %v", title)
+
+	fmt.Fprintf(w, "r From title value: %v <br/>", r.FormValue("title"))
+	fmt.Fprintf(w, "r PostFrom title value: %v <br/>", r.PostFormValue("title"))
+	fmt.Fprintf(w, "r Form agent value: %v<br/>", r.FormValue("agent"))
+	fmt.Fprintf(w, "r PostForm agent value: %v<br/>", r.FormValue("agent"))
 }
 
 func articlesIndexHandler(w http.ResponseWriter, r *http.Request) {
@@ -71,7 +87,7 @@ func articlesCreateHandler(w http.ResponseWriter, r *http.Request) {
 <title>Create a new blog </title>
 </head>
 <body>
-	<form action="%s" method="post">
+	<form action="%s?agent=proxy" method="post">
 		<p><input type="text" name="title"></p>
 		<p><textarea name="body" cols="30" rows="10"></textarea></p>
 		<p><button type="submit">提交</button></p>
