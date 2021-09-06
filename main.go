@@ -3,9 +3,6 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"github.com/go-sql-driver/mysql"
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/gorilla/mux"
 	"html/template"
 	"log"
 	"net/http"
@@ -14,6 +11,10 @@ import (
 	"strings"
 	"time"
 	"unicode/utf8"
+
+	"github.com/go-sql-driver/mysql"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorilla/mux"
 )
 
 var router = mux.NewRouter()
@@ -24,6 +25,12 @@ type ArticlesFormData struct {
 	Title, Body string
 	URL         *url.URL
 	Errors      map[string]string
+}
+
+// Article record
+type Article struct {
+	Tilte, Body string
+	ID          int64
 }
 
 func homeHandler(w http.ResponseWriter, r *http.Request) {
@@ -43,10 +50,32 @@ func notFoundHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// Show article by id
 func articlesShowHandler(w http.ResponseWriter, r *http.Request) {
+	// 1. get url parameters
 	vars := mux.Vars(r)
 	id := vars["id"]
-	fmt.Fprint(w, "Article ID: "+id)
+
+	// Get record by aritcle id
+	article := Article{}
+	query := "SELECT * FROM `articles` WHERE `id` = ?"
+	err := db.QueryRow(query, id).Scan(&article.ID,
+		&article.Tilte, &article.Body)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			// Not found record
+			w.WriteHeader(http.StatusNotFound)
+			fmt.Fprint(w, "404 article not found")
+		} else {
+			checkError(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprint(w, "500 Server Internal error")
+		}
+	} else {
+		// Read success
+		fmt.Fprint(w, "Read success, aritlce title --"+article.Tilte)
+	}
 }
 
 // Store article information
