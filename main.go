@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -70,11 +71,15 @@ func articlesStoreHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(errors) == 0 {
-		fmt.Fprint(w, "Valid!")
-		fmt.Fprintf(w, "title value: %v \n", title)
-		fmt.Fprintf(w, "title length: %v \n", utf8.RuneCountInString(title))
-		fmt.Fprintf(w, "body value: %v \n", body)
-		fmt.Fprintf(w, "body length: %v \n", utf8.RuneCountInString(body))
+		lastInsertId, err := saveArticleToDB(title, body)
+		if lastInsertId > 0 {
+			fmt.Fprint(w, "Insert ID: "+strconv.FormatInt(lastInsertId, 10))
+		} else {
+			checkError(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprint(w, "Server Internal error")
+		}
+
 	} else {
 
 		storeURL, _ := router.Get("articles.store").URL()
@@ -92,6 +97,36 @@ func articlesStoreHandler(w http.ResponseWriter, r *http.Request) {
 		tmpl.Execute(w, data)
 	}
 
+}
+
+func saveArticleToDB(title string, body string) (int64, error) {
+	// Init variables
+	var (
+		id   int64
+		err  error
+		rs   sql.Result
+		stmt *sql.Stmt
+	)
+
+	// Get a prepare
+	stmt, err = db.Prepare("INSERT INTO `articles` (`title`, `body`) VALUES(?, ?)")
+	// Check error
+	if err != nil {
+		return 0, err
+	}
+
+	defer db.Close()
+
+	rs, err = stmt.Exec(title, body)
+	if err != nil {
+		return 0, err
+	}
+
+	id, err = rs.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+	return id, nil
 }
 
 func articlesIndexHandler(w http.ResponseWriter, r *http.Request) {
