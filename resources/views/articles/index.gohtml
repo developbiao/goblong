@@ -1,0 +1,16 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <title>All article  —— My teach blog </title>
+    <style type="text/css">.error {color: red;}</style>
+</head>
+<body>
+<h1>All articles</h1>
+<ul>
+    {{ range $key, $article := . }}
+        <li><a href="#"><strong>{{ $article.ID}}</strong>: {{ $article.Title }}</a></li>
+    {{ end }}
+</ul>
+
+</body>
+</html>

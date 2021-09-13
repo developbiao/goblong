@@ -142,8 +142,32 @@ func saveArticleToDB(title string, body string) (int64, error) {
 	return id, nil
 }
 
+// Articles index handler
 func articlesIndexHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Visit article")
+	// Get query result
+	rows, err := db.Query("SELECT * FROM `articles`")
+	checkError(err)
+	defer rows.Close()
+
+	var articles []Article
+	for rows.Next() {
+		var article Article
+		err := rows.Scan(&article.ID, &article.Title, &article.Body)
+		checkError(err)
+		// Append article to articles slice
+		articles = append(articles, article)
+	}
+
+	// Check iterator error
+	err = rows.Err()
+	checkError(err)
+
+	// Load template
+	tmpl, err := template.ParseFiles("resources/views/articles/index.gohtml")
+	checkError(err)
+
+	// Render template
+	tmpl.Execute(w, articles)
 }
 
 // force add html header
@@ -374,11 +398,15 @@ func main() {
 	// Articles router
 	router.HandleFunc("/articles/{id:[0-9]+}",
 		articlesShowHandler).Methods("GET").Name("articles.show")
+	// Articles index
 	router.HandleFunc("/articles", articlesIndexHandler).Methods("GET").Name("articles.index")
-	router.HandleFunc("/articles", articlesStoreHandler).Methods("POST").Name("articles.store")
+	// Create article page
 	router.HandleFunc("/articles/create", articlesCreateHandler).
 		Methods("GET").
 		Name("articles.create")
+
+	// Save article
+	router.HandleFunc("/articles", articlesStoreHandler).Methods("POST").Name("articles.store")
 
 	// edit
 	router.HandleFunc("/articles/{id:[0-9]+}/edit", articlesEditHandler).
