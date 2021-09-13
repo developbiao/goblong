@@ -29,7 +29,7 @@ type ArticlesFormData struct {
 
 // Article record
 type Article struct {
-	Tilte, Body string
+	Title, Body string
 	ID          int64
 }
 
@@ -53,14 +53,10 @@ func notFoundHandler(w http.ResponseWriter, r *http.Request) {
 // Show article by id
 func articlesShowHandler(w http.ResponseWriter, r *http.Request) {
 	// 1. get url parameters
-	vars := mux.Vars(r)
-	id := vars["id"]
+	id := getRouteVariable("id", r)
 
-	// Get record by aritcle id
-	article := Article{}
-	query := "SELECT * FROM `articles` WHERE `id` = ?"
-	err := db.QueryRow(query, id).Scan(&article.ID,
-		&article.Tilte, &article.Body)
+	// Get record by article id
+	article, err := getArticleByID(id)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -74,7 +70,9 @@ func articlesShowHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		// Read success
-		fmt.Fprint(w, "Read success, aritlce title --"+article.Tilte)
+		tmpl, err := template.ParseFiles("resources/views/articles/show.gohtml")
+		checkError(err)
+		tmpl.Execute(w, article)
 	}
 }
 
@@ -83,21 +81,7 @@ func articlesStoreHandler(w http.ResponseWriter, r *http.Request) {
 	title := r.PostFormValue("title")
 	body := r.PostFormValue("body")
 
-	errors := make(map[string]string)
-
-	// Validation title
-	if title == "" {
-		errors["title"] = "Title can'not empty"
-	} else if utf8.RuneCountInString(title) < 3 || utf8.RuneCountInString(title) > 40 {
-		errors["title"] = "Title length between 3~40"
-	}
-
-	// Validation body
-	if body == "" {
-		errors["body"] = "Body can'not empty"
-	} else if utf8.RuneCountInString(body) < 10 {
-		errors["body"] = "Body length must great than 10 character"
-	}
+	errors := validateArticleFormData(title, body)
 
 	if len(errors) == 0 {
 		lastInsertId, err := saveArticleToDB(title, body)
@@ -219,7 +203,7 @@ func initDB() {
 
 	// Prepare database pool
 	db, err = sql.Open("mysql", config.FormatDSN())
-	fmt.Printf("DSN:%v\n", config.FormatDSN())
+	// fmt.Printf("DSN:%v\n", config.FormatDSN())
 	checkError(err)
 
 	// Set maximum connections
@@ -243,6 +227,96 @@ func checkError(err error) {
 	}
 }
 
+// Article edit handler
+func articlesEditHandler(w http.ResponseWriter, r *http.Request) {
+	// get url parameters
+	id := getRouteVariable("id", r)
+
+	// Get record by article id
+	article, err := getArticleByID(id)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			checkError(err)
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	} else {
+		updateURL, _ := router.Get("articles.update").URL("id", id)
+		data := ArticlesFormData{
+			Title:  article.Title,
+			Body:   article.Body,
+			URL:    updateURL,
+			Errors: nil,
+		}
+		tmpl, err := template.ParseFiles("resources/views/articles/edit.gohtml")
+		checkError(err)
+
+		tmpl.Execute(w, data)
+	}
+
+}
+
+// Article update handler
+func articlesUpdateHandler(w http.ResponseWriter, r *http.Request) {
+	// Get url parameter
+	id := getRouteVariable("id", r)
+
+	// Get article
+	_, err := getArticleByID(id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			// Not found data
+			w.WriteHeader(http.StatusNotFound)
+			fmt.Fprint(w, "404 article not found")
+		} else {
+			checkError(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprint(w, "Internal server error")
+		}
+	} else {
+		title := r.PostFormValue("title")
+		body := r.PostFormValue("body")
+
+		errors := validateArticleFormData(title, body)
+		if len(errors) == 0 {
+			query := "UPDATE `articles` SET `title` = ?, body = ? WHERE `id` = ?"
+			rs, err := db.Exec(query, title, body, id)
+			if err != nil {
+				checkError(err)
+				w.WriteHeader(http.StatusInternalServerError)
+				fmt.Fprint(w, "500 Internal Server Error")
+			}
+
+			if n, _ := rs.RowsAffected(); n > 0 {
+				// Update success
+				showURL, _ := router.Get("articles.show").URL("id", id)
+				if err != nil {
+					fmt.Fprint(w, "Sorry, you don't have permission~", err)
+				}
+				http.Redirect(w, r, showURL.String(), http.StatusFound)
+			} else {
+				fmt.Fprint(w, "You not change anything~")
+			}
+
+		} else {
+			updateURL, _ := router.Get("articles.update").URL("id", id)
+			data := ArticlesFormData{
+				Title:  title,
+				Body:   body,
+				URL:    updateURL,
+				Errors: errors,
+			}
+
+			tmpl, err := template.ParseFiles("resources/views/articles/edit.gohtml")
+			checkError(err)
+			tmpl.Execute(w, data)
+		}
+
+	}
+}
+
 // Create tables
 func createTables() {
 	createArticlesSQL := `CREATE TABLE IF NOT EXISTS articles(
@@ -253,6 +327,41 @@ func createTables() {
 
 	_, err := db.Exec(createArticlesSQL)
 	checkError(err)
+}
+
+// Get route variable
+func getRouteVariable(parameterName string, r *http.Request) string {
+	vars := mux.Vars(r)
+	return vars[parameterName]
+}
+
+// Get article by id
+func getArticleByID(id string) (Article, error) {
+	article := Article{}
+	query := "SELECT * FROM `articles` WHERE `id` = ?"
+	err := db.QueryRow(query, id).Scan(&article.ID, &article.Title, &article.Body)
+	return article, err
+}
+
+// Validation article form data
+func validateArticleFormData(title string, body string) map[string]string {
+
+	errors := make(map[string]string)
+
+	// Validation title
+	if title == "" {
+		errors["title"] = "Title can'not is empty"
+	} else if utf8.RuneCountInString(title) < 3 || utf8.RuneCountInString(title) > 40 {
+		errors["title"] = "Title length must between 3 ~ 40 characters"
+	}
+
+	// Validation  body
+	if body == "" {
+		errors["body"] = "Body can'not is empty"
+	} else if utf8.RuneCountInString(body) < 10 {
+		errors["body"] = "Body length must granter than 10 characters"
+	}
+	return errors
 }
 
 func main() {
@@ -270,6 +379,15 @@ func main() {
 	router.HandleFunc("/articles/create", articlesCreateHandler).
 		Methods("GET").
 		Name("articles.create")
+
+	// edit
+	router.HandleFunc("/articles/{id:[0-9]+}/edit", articlesEditHandler).
+		Methods("GET").
+		Name("articles.edit")
+	// update
+	router.HandleFunc("/articles/{id:[0-9]+}", articlesUpdateHandler).
+		Methods("POST").
+		Name("articles.update")
 
 	// Custom 404 page
 	router.NotFoundHandler = http.HandlerFunc(notFoundHandler)
