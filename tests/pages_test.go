@@ -9,7 +9,7 @@ import (
 )
 
 func TestAllPage(t *testing.T) {
-	baseURL := "http://localhsot:3000"
+	baseURL := "http://localhost:3000"
 
 	// Define all initilization test data
 	var tests = []struct {
@@ -30,7 +30,7 @@ func TestAllPage(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Logf("Curernt request URL: %v \n", test.url)
+		t.Logf("Current request URL: %v \n", test.url)
 		var (
 			resp *http.Response
 			err  error
@@ -45,7 +45,7 @@ func TestAllPage(t *testing.T) {
 		}
 
 		assert.NoError(t, err, "Request "+test.url+" report error")
-		assert.Equal(t, test.expected, resp.StatusCode, test.url+" should response status code"+strconv.Itoa(test.expected))
+		assert.Equal(t, test.expected, resp.StatusCode, test.url+" should response status code "+strconv.Itoa(test.expected))
 
 	}
 
