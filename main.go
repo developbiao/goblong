@@ -71,7 +71,7 @@ func articlesShowHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		tmpl, err := template.New("show.gohtml").
 			Funcs(template.FuncMap{
-				"RouteName2URL": RouteName2URL,
+				"RouteName2URL": Name2URL,
 				"Int64ToString": Int64ToString,
 			}).
 			ParseFiles("resources/views/articles/show.gohtml")
@@ -88,7 +88,7 @@ func articlesShowHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Convert route name to URL
-func RouteName2URL(routeName string, pairs ...string) string {
+func Name2URL(routeName string, pairs ...string) string {
 	url, err := router.Get(routeName).URL(pairs...)
 	if err != nil {
 		checkError(err)
