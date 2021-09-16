@@ -55,7 +55,7 @@ func notFoundHandler(w http.ResponseWriter, r *http.Request) {
 // Show article by id
 func articlesShowHandler(w http.ResponseWriter, r *http.Request) {
 	// 1. get url parameters
-	id := getRouteVariable("id", r)
+	id := route.GetRouteVariable("id", r)
 
 	// Get record by article id
 	article, err := getArticleByID(id)
@@ -272,7 +272,7 @@ func checkError(err error) {
 // Article edit handler
 func articlesEditHandler(w http.ResponseWriter, r *http.Request) {
 	// get url parameters
-	id := getRouteVariable("id", r)
+	id := route.GetRouteVariable("id", r)
 
 	// Get record by article id
 	article, err := getArticleByID(id)
@@ -303,7 +303,7 @@ func articlesEditHandler(w http.ResponseWriter, r *http.Request) {
 // Article update handler
 func articlesUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	// Get url parameter
-	id := getRouteVariable("id", r)
+	id := route.GetRouteVariable("id", r)
 
 	// Get article
 	_, err := getArticleByID(id)
@@ -371,12 +371,6 @@ func createTables() {
 	checkError(err)
 }
 
-// Get route variable
-func getRouteVariable(parameterName string, r *http.Request) string {
-	vars := mux.Vars(r)
-	return vars[parameterName]
-}
-
 // Get article by id
 func getArticleByID(id string) (Article, error) {
 	article := Article{}
@@ -432,7 +426,7 @@ func (a Article) Delete() (rowsAffected int64, err error) {
 // Article delete
 func articlesDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	// Get id
-	id := getRouteVariable("id", r)
+	id := route.GetRouteVariable("id", r)
 
 	// Get article by id
 	article, err := getArticleByID(id)
