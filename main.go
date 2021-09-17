@@ -3,9 +3,9 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"goblong/logger"
 	"goblong/route"
 	"html/template"
-	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -66,7 +66,7 @@ func articlesShowHandler(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusNotFound)
 			fmt.Fprint(w, "404 article not found")
 		} else {
-			checkError(err)
+			logger.LogError(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprint(w, "500 Server Internal error")
 		}
@@ -78,12 +78,12 @@ func articlesShowHandler(w http.ResponseWriter, r *http.Request) {
 			}).
 			ParseFiles("resources/views/articles/show.gohtml")
 		if err != nil {
-			checkError(err)
+			logger.LogError(err)
 		}
 		// Read success
 		tmpl.Execute(w, article)
 		if err != nil {
-			checkError(err)
+			logger.LogError(err)
 		}
 
 	}
@@ -106,7 +106,7 @@ func articlesStoreHandler(w http.ResponseWriter, r *http.Request) {
 		if lastInsertId > 0 {
 			fmt.Fprint(w, "Insert ID: "+strconv.FormatInt(lastInsertId, 10))
 		} else {
-			checkError(err)
+			logger.LogError(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprint(w, "Server Internal error")
 		}
@@ -164,25 +164,25 @@ func saveArticleToDB(title string, body string) (int64, error) {
 func articlesIndexHandler(w http.ResponseWriter, r *http.Request) {
 	// Get query result
 	rows, err := db.Query("SELECT * FROM `articles`")
-	checkError(err)
+	logger.LogError(err)
 	defer rows.Close()
 
 	var articles []Article
 	for rows.Next() {
 		var article Article
 		err := rows.Scan(&article.ID, &article.Title, &article.Body)
-		checkError(err)
+		logger.LogError(err)
 		// Append article to articles slice
 		articles = append(articles, article)
 	}
 
 	// Check iterator error
 	err = rows.Err()
-	checkError(err)
+	logger.LogError(err)
 
 	// Load template
 	tmpl, err := template.ParseFiles("resources/views/articles/index.gohtml")
-	checkError(err)
+	logger.LogError(err)
 
 	// Render template
 	tmpl.Execute(w, articles)
@@ -246,7 +246,7 @@ func initDB() {
 	// Prepare database pool
 	db, err = sql.Open("mysql", config.FormatDSN())
 	// fmt.Printf("DSN:%v\n", config.FormatDSN())
-	checkError(err)
+	logger.LogError(err)
 
 	// Set maximum connections
 	db.SetMaxIdleConns(25)
@@ -259,14 +259,8 @@ func initDB() {
 
 	// Connection to database
 	err = db.Ping()
-	checkError(err)
+	logger.LogError(err)
 
-}
-
-func checkError(err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
 }
 
 // Article edit handler
@@ -281,7 +275,7 @@ func articlesEditHandler(w http.ResponseWriter, r *http.Request) {
 		if err == sql.ErrNoRows {
 			w.WriteHeader(http.StatusNotFound)
 		} else {
-			checkError(err)
+			logger.LogError(err)
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 	} else {
@@ -293,7 +287,7 @@ func articlesEditHandler(w http.ResponseWriter, r *http.Request) {
 			Errors: nil,
 		}
 		tmpl, err := template.ParseFiles("resources/views/articles/edit.gohtml")
-		checkError(err)
+		logger.LogError(err)
 
 		tmpl.Execute(w, data)
 	}
@@ -313,7 +307,7 @@ func articlesUpdateHandler(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusNotFound)
 			fmt.Fprint(w, "404 article not found")
 		} else {
-			checkError(err)
+			logger.LogError(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprint(w, "Internal server error")
 		}
@@ -326,7 +320,7 @@ func articlesUpdateHandler(w http.ResponseWriter, r *http.Request) {
 			query := "UPDATE `articles` SET `title` = ?, body = ? WHERE `id` = ?"
 			rs, err := db.Exec(query, title, body, id)
 			if err != nil {
-				checkError(err)
+				logger.LogError(err)
 				w.WriteHeader(http.StatusInternalServerError)
 				fmt.Fprint(w, "500 Internal Server Error")
 			}
@@ -352,7 +346,7 @@ func articlesUpdateHandler(w http.ResponseWriter, r *http.Request) {
 			}
 
 			tmpl, err := template.ParseFiles("resources/views/articles/edit.gohtml")
-			checkError(err)
+			logger.LogError(err)
 			tmpl.Execute(w, data)
 		}
 
@@ -368,7 +362,7 @@ func createTables() {
 );`
 
 	_, err := db.Exec(createArticlesSQL)
-	checkError(err)
+	logger.LogError(err)
 }
 
 // Get article by id
@@ -404,7 +398,7 @@ func validateArticleFormData(title string, body string) map[string]string {
 func (a Article) Link() string {
 	showURL, err := router.Get("articles.show").URL("id", strconv.FormatInt(a.ID, 10))
 	if err != nil {
-		checkError(err)
+		logger.LogError(err)
 		return ""
 	}
 	return showURL.String()
@@ -435,7 +429,7 @@ func articlesDeleteHandler(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusNotFound)
 			fmt.Fprint(w, "404 not found article")
 		} else {
-			checkError(err)
+			logger.LogError(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprint(w, "Internal server error")
 		}
@@ -444,7 +438,7 @@ func articlesDeleteHandler(w http.ResponseWriter, r *http.Request) {
 		rowsAffected, err := article.Delete()
 		if err != nil {
 			// Should be sql error
-			checkError(err)
+			logger.LogError(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprint(w, "Internal server error")
 		}
