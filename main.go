@@ -3,8 +3,9 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"goblong/logger"
-	"goblong/route"
+	"goblong/pkg/logger"
+	"goblong/pkg/route"
+	"goblong/pkg/types"
 	"html/template"
 	"net/http"
 	"net/url"
@@ -74,7 +75,7 @@ func articlesShowHandler(w http.ResponseWriter, r *http.Request) {
 		tmpl, err := template.New("show.gohtml").
 			Funcs(template.FuncMap{
 				"RouteName2URL": route.Name2URL,
-				"Int64ToString": Int64ToString,
+				"Int64ToString": types.Int64ToString,
 			}).
 			ParseFiles("resources/views/articles/show.gohtml")
 		if err != nil {
@@ -87,11 +88,6 @@ func articlesShowHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
-}
-
-// Convert int64 to string
-func Int64ToString(num int64) string {
-	return strconv.FormatInt(num, 10)
 }
 
 // Store article information
