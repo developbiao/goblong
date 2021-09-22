@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"goblong/pkg/database"
 	"goblong/pkg/logger"
 	"goblong/pkg/route"
 	"goblong/pkg/types"
@@ -11,10 +12,8 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	"time"
 	"unicode/utf8"
 
-	"github.com/go-sql-driver/mysql"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 )
@@ -34,23 +33,6 @@ type ArticlesFormData struct {
 type Article struct {
 	Title, Body string
 	ID          int64
-}
-
-func homeHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "<h1 style=\"color:pink\">Hello, welcome my goblog</h1>")
-}
-
-func aboutHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "<h1>This blog just for record leanring golang, if you have any question please contact "+
-		"<a href=\"mailto:developbiao@gmail.com\">developbiao@gmail.com</a></h1>")
-}
-
-func notFoundHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.WriteHeader(http.StatusNotFound)
-	fmt.Fprint(w, "<h1>Reqeust not found page :(</h1>"+
-		"<p>If you have any doubts, please contact us. </p>")
-
 }
 
 // Show article by id
@@ -228,37 +210,6 @@ func articlesCreateHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func initDB() {
-	var err error
-	config := mysql.Config{
-		User:                 "homestead",
-		Passwd:               "secret",
-		Addr:                 "192.168.56.38",
-		Net:                  "tcp",
-		DBName:               "goblog",
-		AllowNativePasswords: true,
-	}
-
-	// Prepare database pool
-	db, err = sql.Open("mysql", config.FormatDSN())
-	// fmt.Printf("DSN:%v\n", config.FormatDSN())
-	logger.LogError(err)
-
-	// Set maximum connections
-	db.SetMaxIdleConns(25)
-
-	// Set maximum connection idle time
-	db.SetMaxIdleConns(25)
-
-	// Set each connection expire time
-	db.SetConnMaxLifetime(5 * time.Minute)
-
-	// Connection to database
-	err = db.Ping()
-	logger.LogError(err)
-
-}
-
 // Article edit handler
 func articlesEditHandler(w http.ResponseWriter, r *http.Request) {
 	// get url parameters
@@ -347,18 +298,6 @@ func articlesUpdateHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
-}
-
-// Create tables
-func createTables() {
-	createArticlesSQL := `CREATE TABLE IF NOT EXISTS articles(
-	id BIGINT(20) PRIMARY KEY AUTO_INCREMENT NOT NULL,
-	title VARCHAR(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-	body longtext COLLATE utf8mb4_unicode_ci
-);`
-
-	_, err := db.Exec(createArticlesSQL)
-	logger.LogError(err)
 }
 
 // Get article by id
@@ -453,14 +392,14 @@ func articlesDeleteHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	initDB()
-	createTables()
 
+	// initialize database
+	database.Initialize()
+	db = database.DB
+
+	// initialize router
 	route.Initialize()
 	router = route.Router
-
-	router.HandleFunc("/", homeHandler).Methods("GET").Name("home")
-	router.HandleFunc("/about", aboutHandler).Methods("GET").Name("about")
 
 	// Articles router
 	router.HandleFunc("/articles/{id:[0-9]+}",
@@ -488,9 +427,6 @@ func main() {
 	router.HandleFunc("/articles/{id:[0-9]+}/delete", articlesDeleteHandler).
 		Methods("POST").
 		Name("articles.delete")
-
-	// Custom 404 page
-	router.NotFoundHandler = http.HandlerFunc(notFoundHandler)
 
 	// Get router name URL example
 	homeURL, _ := router.Get("home").URL()
