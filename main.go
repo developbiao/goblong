@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"goblong/bootstrap"
 	"goblong/pkg/database"
 	"goblong/pkg/logger"
 	"goblong/pkg/route"
@@ -38,7 +39,7 @@ type Article struct {
 // Show article by id
 func articlesShowHandler(w http.ResponseWriter, r *http.Request) {
 	// 1. get url parameters
-	id := route.GetRouteVariable("id", r)
+	id := getRouteVariable("id", r)
 
 	// Get record by article id
 	article, err := getArticleByID(id)
@@ -213,7 +214,7 @@ func articlesCreateHandler(w http.ResponseWriter, r *http.Request) {
 // Article edit handler
 func articlesEditHandler(w http.ResponseWriter, r *http.Request) {
 	// get url parameters
-	id := route.GetRouteVariable("id", r)
+	id := getRouteVariable("id", r)
 
 	// Get record by article id
 	article, err := getArticleByID(id)
@@ -244,7 +245,7 @@ func articlesEditHandler(w http.ResponseWriter, r *http.Request) {
 // Article update handler
 func articlesUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	// Get url parameter
-	id := route.GetRouteVariable("id", r)
+	id := getRouteVariable("id", r)
 
 	// Get article
 	_, err := getArticleByID(id)
@@ -355,7 +356,7 @@ func (a Article) Delete() (rowsAffected int64, err error) {
 // Article delete
 func articlesDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	// Get id
-	id := route.GetRouteVariable("id", r)
+	id := getRouteVariable("id", r)
 
 	// Get article by id
 	article, err := getArticleByID(id)
@@ -391,6 +392,11 @@ func articlesDeleteHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func getRouteVariable(parameterName string, r *http.Request) string {
+	vars := mux.Vars(r)
+	return vars[parameterName]
+}
+
 func main() {
 
 	// initialize database
@@ -398,12 +404,8 @@ func main() {
 	db = database.DB
 
 	// initialize router
-	route.Initialize()
-	router = route.Router
+	router = bootstrap.SetupRoute()
 
-	// Articles router
-	router.HandleFunc("/articles/{id:[0-9]+}",
-		articlesShowHandler).Methods("GET").Name("articles.show")
 	// Articles index
 	router.HandleFunc("/articles", articlesIndexHandler).Methods("GET").Name("articles.index")
 	// Create article page

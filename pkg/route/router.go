@@ -2,17 +2,10 @@ package route
 
 import (
 	"github.com/gorilla/mux"
-	"goblong/routes"
 	"net/http"
 )
 
 var Router *mux.Router
-
-// Initialize
-func Initialize() {
-	Router = mux.NewRouter()
-	routes.RegisterWebRoutes(Router)
-}
 
 // Convert route name to URL
 func Name2URL(routeName string, pairs ...string) string {
