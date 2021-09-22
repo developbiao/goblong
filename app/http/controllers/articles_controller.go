@@ -1,11 +1,12 @@
 package controllers
 
 import (
-	"database/sql"
 	"fmt"
 	"goblong/pkg/logger"
+	"goblong/pkg/model/article"
 	"goblong/pkg/route"
 	"goblong/pkg/types"
+	"gorm.io/gorm"
 	"html/template"
 	"net/http"
 )
@@ -18,14 +19,14 @@ func (*ArticlesController) Show(w http.ResponseWriter, r *http.Request) {
 	// 1. get url parameters
 	id := route.GetRouteVariable("id", r)
 
-	// Get record by article id
-	article, err := getArticleByID(id)
+	// Get record by articleRecord id
+	articleRecord, err := article.Get(id)
 
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if err == gorm.ErrRecordNotFound {
 			// Not found record
 			w.WriteHeader(http.StatusNotFound)
-			fmt.Fprint(w, "404 article not found")
+			fmt.Fprint(w, "404 articleRecord not found")
 		} else {
 			logger.LogError(err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -42,7 +43,7 @@ func (*ArticlesController) Show(w http.ResponseWriter, r *http.Request) {
 			logger.LogError(err)
 		}
 		// Read success
-		tmpl.Execute(w, article)
+		tmpl.Execute(w, articleRecord)
 		if err != nil {
 			logger.LogError(err)
 		}
