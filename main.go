@@ -6,8 +6,6 @@ import (
 	"goblong/bootstrap"
 	"goblong/pkg/database"
 	"goblong/pkg/logger"
-	"goblong/pkg/route"
-	"goblong/pkg/types"
 	"html/template"
 	"net/http"
 	"net/url"
@@ -34,43 +32,6 @@ type ArticlesFormData struct {
 type Article struct {
 	Title, Body string
 	ID          int64
-}
-
-// Show article by id
-func articlesShowHandler(w http.ResponseWriter, r *http.Request) {
-	// 1. get url parameters
-	id := getRouteVariable("id", r)
-
-	// Get record by article id
-	article, err := getArticleByID(id)
-
-	if err != nil {
-		if err == sql.ErrNoRows {
-			// Not found record
-			w.WriteHeader(http.StatusNotFound)
-			fmt.Fprint(w, "404 article not found")
-		} else {
-			logger.LogError(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprint(w, "500 Server Internal error")
-		}
-	} else {
-		tmpl, err := template.New("show.gohtml").
-			Funcs(template.FuncMap{
-				"RouteName2URL": route.Name2URL,
-				"Int64ToString": types.Int64ToString,
-			}).
-			ParseFiles("resources/views/articles/show.gohtml")
-		if err != nil {
-			logger.LogError(err)
-		}
-		// Read success
-		tmpl.Execute(w, article)
-		if err != nil {
-			logger.LogError(err)
-		}
-
-	}
 }
 
 // Store article information
@@ -137,34 +98,6 @@ func saveArticleToDB(title string, body string) (int64, error) {
 		return 0, err
 	}
 	return id, nil
-}
-
-// Articles index handler
-func articlesIndexHandler(w http.ResponseWriter, r *http.Request) {
-	// Get query result
-	rows, err := db.Query("SELECT * FROM `articles`")
-	logger.LogError(err)
-	defer rows.Close()
-
-	var articles []Article
-	for rows.Next() {
-		var article Article
-		err := rows.Scan(&article.ID, &article.Title, &article.Body)
-		logger.LogError(err)
-		// Append article to articles slice
-		articles = append(articles, article)
-	}
-
-	// Check iterator error
-	err = rows.Err()
-	logger.LogError(err)
-
-	// Load template
-	tmpl, err := template.ParseFiles("resources/views/articles/index.gohtml")
-	logger.LogError(err)
-
-	// Render template
-	tmpl.Execute(w, articles)
 }
 
 // force add html header
@@ -409,8 +342,6 @@ func main() {
 	// initialize router
 	router = bootstrap.SetupRoute()
 
-	// Articles index
-	router.HandleFunc("/articles", articlesIndexHandler).Methods("GET").Name("articles.index")
 	// Create article page
 	router.HandleFunc("/articles/create", articlesCreateHandler).
 		Methods("GET").

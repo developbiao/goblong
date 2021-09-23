@@ -19,4 +19,7 @@ func RegisterWebRoutes(r *mux.Router) {
 	ac := new(controllers.ArticlesController)
 	r.HandleFunc("/articles/{id:[0-9]+}", ac.Show).Methods("GET").Name("articles.show")
 
+	// Articles
+	r.HandleFunc("/articles", ac.Index).Methods("GET").Name("articles.index")
+
 }
