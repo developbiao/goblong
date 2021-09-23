@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"goblong/pkg/logger"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -21,6 +22,9 @@ func ConnectDB() *gorm.DB {
 	// Prepare connection pool
 	DB, err = gorm.Open(config, &gorm.Config{})
 
+	if err != nil {
+		fmt.Println("Connection to db failed", err)
+	}
 	logger.LogError(err)
 	return DB
 }

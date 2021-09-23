@@ -403,6 +403,9 @@ func main() {
 	database.Initialize()
 	db = database.DB
 
+	// Setup ORM
+	bootstrap.SetupDB()
+
 	// initialize router
 	router = bootstrap.SetupRoute()
 
