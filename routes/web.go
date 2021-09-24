@@ -39,4 +39,9 @@ func RegisterWebRoutes(r *mux.Router) {
 		Methods("POST").
 		Name("articles.update")
 
+	// Delete
+	r.HandleFunc("/articles/{id:[0-9]+}/delete", ac.Delete).
+		Methods("POST").
+		Name("articles.delete")
+
 }

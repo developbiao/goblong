@@ -257,3 +257,42 @@ func (*ArticlesController) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+
+// Delete action
+func (*ArticlesController) Delete(w http.ResponseWriter, r *http.Request) {
+	// Get id
+	id := route.GetRouteVariable("id", r)
+
+	// Get article by id
+	_article, err := article.Get(id)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			w.WriteHeader(http.StatusNotFound)
+			fmt.Fprint(w, "404 not found article")
+		} else {
+			logger.LogError(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprint(w, "Internal server error")
+		}
+
+	} else {
+		rowsAffected, err := _article.Delete()
+		if err != nil {
+			// Should be sql error
+			logger.LogError(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprint(w, "Internal server error")
+		}
+
+		if rowsAffected > 0 {
+			indexURL := route.Name2URL("articles.index")
+			http.Redirect(w, r, indexURL, http.StatusFound)
+
+		} else {
+			w.WriteHeader(http.StatusNotFound)
+			fmt.Fprint(w, "404 not found article")
+		}
+
+	}
+
+}

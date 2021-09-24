@@ -227,45 +227,6 @@ func (a Article) Delete() (rowsAffected int64, err error) {
 	return 0, nil
 }
 
-// Article delete
-func articlesDeleteHandler(w http.ResponseWriter, r *http.Request) {
-	// Get id
-	id := getRouteVariable("id", r)
-
-	// Get article by id
-	article, err := getArticleByID(id)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			w.WriteHeader(http.StatusNotFound)
-			fmt.Fprint(w, "404 not found article")
-		} else {
-			logger.LogError(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprint(w, "Internal server error")
-		}
-
-	} else {
-		rowsAffected, err := article.Delete()
-		if err != nil {
-			// Should be sql error
-			logger.LogError(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprint(w, "Internal server error")
-		}
-
-		if rowsAffected > 0 {
-			indexURL, _ := router.Get("articles.index").URL()
-			http.Redirect(w, r, indexURL.String(), http.StatusFound)
-
-		} else {
-			w.WriteHeader(http.StatusNotFound)
-			fmt.Fprint(w, "404 not found article")
-		}
-
-	}
-
-}
-
 func getRouteVariable(parameterName string, r *http.Request) string {
 	vars := mux.Vars(r)
 	return vars[parameterName]
@@ -282,11 +243,6 @@ func main() {
 
 	// initialize router
 	router = bootstrap.SetupRoute()
-
-	// Delete
-	router.HandleFunc("/articles/{id:[0-9]+}/delete", articlesDeleteHandler).
-		Methods("POST").
-		Name("articles.delete")
 
 	// Get router name URL example
 	homeURL, _ := router.Get("home").URL()
