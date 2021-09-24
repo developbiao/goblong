@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"database/sql"
 	"fmt"
 	"goblong/pkg/logger"
 	"goblong/pkg/model/article"
@@ -159,6 +160,100 @@ func (*ArticlesController) Store(w http.ResponseWriter, r *http.Request) {
 		}
 
 		tmpl.Execute(w, data)
+	}
+
+}
+
+// Edit article
+func (*ArticlesController) Edit(w http.ResponseWriter, r *http.Request) {
+
+	// get url parameters
+	id := route.GetRouteVariable("id", r)
+
+	// Get record by article id
+	articleRecord, err := article.Get(id)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			logger.LogError(err)
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	} else {
+		updateURL := route.Name2URL("articles.update", "id", id)
+		data := ArticlesFormData{
+			Title:  articleRecord.Title,
+			Body:   articleRecord.Body,
+			URL:    updateURL,
+			Errors: nil,
+		}
+		tmpl, err := template.ParseFiles("resources/views/articles/edit.gohtml")
+		logger.LogError(err)
+
+		tmpl.Execute(w, data)
+	}
+}
+
+// Update article
+func (*ArticlesController) Update(w http.ResponseWriter, r *http.Request) {
+	// Get url parameter
+	id := route.GetRouteVariable("id", r)
+
+	// Get article
+	_article, err := article.Get(id)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			// Not found data
+			w.WriteHeader(http.StatusNotFound)
+			fmt.Fprint(w, "404 article not found")
+		} else {
+			logger.LogError(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprint(w, "Internal server error")
+		}
+	} else {
+		title := r.PostFormValue("title")
+		body := r.PostFormValue("body")
+
+		errors := validateArticleFormData(title, body)
+
+		if len(errors) == 0 {
+			_article.Title = title
+			_article.Body = body
+			rowsAffected, err := _article.Update()
+			if err != nil {
+				logger.LogError(err)
+				w.WriteHeader(http.StatusInternalServerError)
+				fmt.Fprint(w, "500 Internal Server Error")
+			}
+
+			if rowsAffected > 0 {
+				// Update success
+				showURL := route.Name2URL("articles.show", "id", id)
+				if err != nil {
+					fmt.Fprint(w, "Sorry, you don't have permission~", err)
+				}
+				http.Redirect(w, r, showURL, http.StatusFound)
+			} else {
+				fmt.Fprint(w, "You not change anything~")
+			}
+
+		} else {
+			updateURL := route.Name2URL("articles.update", "id", id)
+			data := ArticlesFormData{
+				Title:  title,
+				Body:   body,
+				URL:    updateURL,
+				Errors: errors,
+			}
+
+			tmpl, err := template.ParseFiles("resources/views/articles/edit.gohtml")
+			logger.LogError(err)
+
+			tmpl.Execute(w, data)
+		}
+
 	}
 
 }

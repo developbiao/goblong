@@ -175,65 +175,6 @@ func articlesEditHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// Article update handler
-func articlesUpdateHandler(w http.ResponseWriter, r *http.Request) {
-	// Get url parameter
-	id := getRouteVariable("id", r)
-
-	// Get article
-	_, err := getArticleByID(id)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			// Not found data
-			w.WriteHeader(http.StatusNotFound)
-			fmt.Fprint(w, "404 article not found")
-		} else {
-			logger.LogError(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprint(w, "Internal server error")
-		}
-	} else {
-		title := r.PostFormValue("title")
-		body := r.PostFormValue("body")
-
-		errors := validateArticleFormData(title, body)
-		if len(errors) == 0 {
-			query := "UPDATE `articles` SET `title` = ?, body = ? WHERE `id` = ?"
-			rs, err := db.Exec(query, title, body, id)
-			if err != nil {
-				logger.LogError(err)
-				w.WriteHeader(http.StatusInternalServerError)
-				fmt.Fprint(w, "500 Internal Server Error")
-			}
-
-			if n, _ := rs.RowsAffected(); n > 0 {
-				// Update success
-				showURL, _ := router.Get("articles.show").URL("id", id)
-				if err != nil {
-					fmt.Fprint(w, "Sorry, you don't have permission~", err)
-				}
-				http.Redirect(w, r, showURL.String(), http.StatusFound)
-			} else {
-				fmt.Fprint(w, "You not change anything~")
-			}
-
-		} else {
-			updateURL, _ := router.Get("articles.update").URL("id", id)
-			data := ArticlesFormData{
-				Title:  title,
-				Body:   body,
-				URL:    updateURL,
-				Errors: errors,
-			}
-
-			tmpl, err := template.ParseFiles("resources/views/articles/edit.gohtml")
-			logger.LogError(err)
-			tmpl.Execute(w, data)
-		}
-
-	}
-}
-
 // Get article by id
 func getArticleByID(id string) (Article, error) {
 	article := Article{}
@@ -341,15 +282,6 @@ func main() {
 
 	// initialize router
 	router = bootstrap.SetupRoute()
-
-	// edit
-	router.HandleFunc("/articles/{id:[0-9]+}/edit", articlesEditHandler).
-		Methods("GET").
-		Name("articles.edit")
-	// update
-	router.HandleFunc("/articles/{id:[0-9]+}", articlesUpdateHandler).
-		Methods("POST").
-		Name("articles.update")
 
 	// Delete
 	router.HandleFunc("/articles/{id:[0-9]+}/delete", articlesDeleteHandler).
