@@ -9,11 +9,21 @@ import (
 	"gorm.io/gorm"
 	"html/template"
 	"net/http"
+	"strconv"
+	"unicode/utf8"
 )
 
 type ArticlesController struct {
 }
 
+// Articles from data
+type ArticlesFormData struct {
+	Title, Body string
+	URL         string
+	Errors      map[string]string
+}
+
+// Show article
 func (*ArticlesController) Show(w http.ResponseWriter, r *http.Request) {
 
 	// 1. get url parameters
@@ -71,6 +81,84 @@ func (*ArticlesController) Index(w http.ResponseWriter, r *http.Request) {
 		// Render template
 		tmpl.Execute(w, articles)
 
+	}
+
+}
+
+// Validation article form data
+func validateArticleFormData(title string, body string) map[string]string {
+
+	errors := make(map[string]string)
+
+	// Validation title
+	if title == "" {
+		errors["title"] = "Title can'not is empty"
+	} else if utf8.RuneCountInString(title) < 3 || utf8.RuneCountInString(title) > 40 {
+		errors["title"] = "Title length must between 3 ~ 40 characters"
+	}
+
+	// Validation  body
+	if body == "" {
+		errors["body"] = "Body can'not is empty"
+	} else if utf8.RuneCountInString(body) < 10 {
+		errors["body"] = "Body length must granter than 10 characters"
+	}
+	return errors
+}
+
+// Create article page
+func (*ArticlesController) Create(w http.ResponseWriter, r *http.Request) {
+	storeURL := route.Name2URL("articles.store")
+	data := ArticlesFormData{
+		Title:  "",
+		Body:   "",
+		URL:    storeURL,
+		Errors: nil,
+	}
+
+	tmpl, err := template.ParseFiles("resources/views/articles/create.gohtml")
+	if err != nil {
+		panic(err)
+	}
+	tmpl.Execute(w, data)
+}
+
+// Store article
+func (*ArticlesController) Store(w http.ResponseWriter, r *http.Request) {
+
+	title := r.PostFormValue("title")
+	body := r.PostFormValue("body")
+
+	errors := validateArticleFormData(title, body)
+
+	if len(errors) == 0 {
+		_article := article.Article{
+			Title: title,
+			Body:  body,
+		}
+		_article.Create()
+		if _article.ID > 0 {
+			fmt.Fprint(w, "Insert ID: "+strconv.FormatInt(int64(_article.ID), 10))
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprint(w, "Create article failed please contact administrator")
+		}
+
+	} else {
+
+		storeURL := route.Name2URL("article.store")
+		data := ArticlesFormData{
+			Title:  title,
+			Body:   body,
+			URL:    storeURL,
+			Errors: errors,
+		}
+		tmpl, err := template.ParseFiles("resources/views/articles/create.gohtml")
+		if err != nil {
+			panic(err)
+		}
+
+		tmpl.Execute(w, data)
 	}
 
 }

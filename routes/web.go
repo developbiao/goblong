@@ -22,4 +22,12 @@ func RegisterWebRoutes(r *mux.Router) {
 	// Articles
 	r.HandleFunc("/articles", ac.Index).Methods("GET").Name("articles.index")
 
+	// Create article page
+	r.HandleFunc("/articles/create", ac.Create).
+		Methods("GET").
+		Name("articles.create")
+
+	// Save article
+	r.HandleFunc("/articles", ac.Store).Methods("POST").Name("articles.store")
+
 }

@@ -1,6 +1,7 @@
 package article
 
 import (
+	"goblong/pkg/logger"
 	"goblong/pkg/model"
 	"goblong/pkg/types"
 )
@@ -22,4 +23,14 @@ func GetAll() ([]Article, error) {
 		return articles, err
 	}
 	return articles, nil
+}
+
+// Create article
+func (article *Article) Create() (err error) {
+	result := model.DB.Create(&article)
+	if err = result.Error; err != nil {
+		logger.LogError(err)
+		return err
+	}
+	return nil
 }

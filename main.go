@@ -342,14 +342,6 @@ func main() {
 	// initialize router
 	router = bootstrap.SetupRoute()
 
-	// Create article page
-	router.HandleFunc("/articles/create", articlesCreateHandler).
-		Methods("GET").
-		Name("articles.create")
-
-	// Save article
-	router.HandleFunc("/articles", articlesStoreHandler).Methods("POST").Name("articles.store")
-
 	// edit
 	router.HandleFunc("/articles/{id:[0-9]+}/edit", articlesEditHandler).
 		Methods("GET").
