@@ -10,6 +10,7 @@ import (
 	"gorm.io/gorm"
 	"html/template"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"unicode/utf8"
 )
@@ -75,12 +76,24 @@ func (*ArticlesController) Index(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "500 Internal Server error")
 
 	} else {
-		// Load template
-		tmpl, err := template.ParseFiles("resources/views/articles/index.gohtml")
+		// Load templates
+
+		// Set template related path
+		viewDir := "resources/views"
+
+		// All layout slices
+		files, err := filepath.Glob(viewDir + "/layouts/*.gohtml")
 		logger.LogError(err)
 
-		// Render template
-		tmpl.Execute(w, articles)
+		// Add our target file
+		newFiles := append(files, viewDir+"/articles/index.gohtml")
+
+		// Parsing template file
+		tmpl, err := template.ParseFiles(newFiles...)
+		logger.LogError(err)
+
+		// Render template files
+		tmpl.ExecuteTemplate(w, "app", articles)
 
 	}
 

@@ -1,70 +1,24 @@
-<!DOCTYPE HTML>
-<html lang="en">
-<head>
-    <title>All article  —— My teach blog </title>
-    <link href="/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/css/app.css" rel="stylesheet">
-</head>
-<body>
-    <div class="container-sm">
-        <div class="row mt-5">
-            <div class="col-md-3 blog-sidebar">
-                <div class="p-4 mb-3 bg-white rounded shadow-sm">
-                   <h1>GoBlog</h1>
-                    <p class="mb-0">Keep Learning, make money</p>
-                </div>
+{{define "title"}}
+  All article  —— My teach blog
+{{end}}
 
-                <div class="p-4 bg-white rounded shadow-sm mb-3">
-                    <h5>分类</h5>
-                    <ol class="list-unstyled mb-0">
-                        <li><a href="#">Default</a></li>
-                        <li><a href="#">Template</a></li>
-                        <li><a href="#">Database</a></li>
-                    </ol>
-                </div>
+{{define "main"}}
+  <div class="col-md-9 blog-sidebar">
+    {{ range $key, $article := . }}
+      <div class="blog-post bg-white p-5 rounded shadow mb-4">
+        <h3 class="blog-post-title"><a href="{{ $article.Link }}" class="text-dark text-decoration-none">{{ $article.Title}}</a></h3>
+        <p class="blog-post-meta text-secondary">Release from <a href="" class="font-weight-bold">2021-09-28</a> by <a href="#" class="font-weight-bold">Macro</a></p>
 
-                <div class="p-4 bg-white rounded shadow-sm mb-3">
-                    <h5>Author</h5>
-                    <ol class="list-unstyled mb-0">
-                        <li><a href="#">Macro</a></li>
-                        <li><a href="#">Biao</a></li>
-                        <li><a href="#">LiSa</a></li>
-                    </ol>
-                </div>
+        <hr>
+        {{ $article.Body}}
+      </div><!-- /.blog-post -->
+    {{ end }}
 
-                <div class="p-4 bg-white rounded shadow-sm mb-3">
-                    <h5>Link</h5>
-                    <ol class="list-unstyled mb-0">
-                        <li><a href="#">About us</a></li>
-                        <li><a href="#">Registration</a></li>
-                        <li><a href="#">Login</a></li>
-                    </ol>
-                </div>
+    <nav class="blog-patination md-5">
+      <a class="btn btn-outline-primary" href="#">Next page</a>
+      <a class="btn btn-outline-secondary disabled" href="#" tabindex="-1" aria-disabled="true">Preview page</a>
+    </nav>
 
+  </div><!--/.blog-main -->
+{{end}}
 
-            </div><!-- /.blog-sidebar -->
-
-            <div class="col-md-9 blog-sidebar">
-                {{ range $key, $article := . }}
-                    <div class="blog-post bg-white p-5 rounded shadow mb-4">
-                        <h3 class="blog-post-title"><a href="{{ $article.Link }}" class="text-dark text-decoration-none">{{ $article.Title}}</a></h3>
-                        <p class="blog-post-meta text-secondary">Release from <a href="" class="font-weight-bold">2021-09-28</a> by <a href="#" class="font-weight-bold">Macro</a></p>
-
-                        <hr>
-                        {{ $article.Body}}
-                    </div><!-- /.blog-post -->
-                {{ end }}
-
-                <nav class="blog-patination md-5">
-                    <a class="btn btn-outline-primary" href="#">Next page</a>
-                    <a class="btn btn-outline-secondary disabled" href="#" tabindex="-1" aria-disabled="true">Preview page</a>
-                </nav>
-
-            </div><!--/.blog-main -->
-
-        </div>
-    </div>
-
-</body>
-    <script src="/js/bootstrap.min.js"></script>
-</html>
