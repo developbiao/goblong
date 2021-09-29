@@ -1,0 +1,16 @@
+; https://editorconfig.org
+
+root = true
+
+[*.gohtml]
+; Set file encoding
+charset = utf-8
+
+; Remove trailing whitespace
+trim_trailing_whitespace = true
+
+; Use space ident style
+indent_style = space
+
+; indent size
+indent_size = 2
