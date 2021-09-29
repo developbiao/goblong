@@ -1,19 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>{{ .Title }} —— My Teach blog</title>
-    <style type="text/css">
-        .error {color: red;}
-    </style>
-</head>
-<body>
-    <p>ID： {{ .ID }}</p>
-    <p>Title： {{ .Title }}</p>
-    <p>Content: {{ .Body }}</p>
+{{define "title"}}
+  {{ .Title }}
+{{end}}
 
-    {{ $idString := Int64ToString .ID  }}
-    <form action="{{ RouteName2URL "articles.delete" "id" $idString }}" method="post">
-        <button type="submit" onclick="return confirm('Are you sure delete?')">Delete</button>
-    </form>
-</body>
-</html>
+{{define "main"}}
+  <div class="col-md-9 blog-main">
+
+    <div class="blog-post bg-white p-5 rounded shadow mb-4">
+      <h3 class="blog-post-title">{{ .Title }}</h3>
+      <p class="blog-post-meta text-secondary">Release From <a href="" class="font-weight-bold">2021-09-29</a> by <a href="#" class="font-weight-bold">Macro</a></p>
+
+      <hr>
+      {{ .Body }}
+
+      {{/* Build delete button  */}}
+      {{ $idString := Int64ToString .ID  }}
+      <form class="mt-4" action="{{ RouteName2URL "articles.delete" "id" $idString }}" method="post">
+        <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure delete this article?')">Delete</button>
+      </form>
+
+    </div><!-- /.blog-post -->
+  </div>
+
+{{end}}
