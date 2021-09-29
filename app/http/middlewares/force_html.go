@@ -1,6 +1,8 @@
 package middlewares
 
-import "net/http"
+import (
+	"net/http"
+)
 
 // force add html header
 func ForceHTML(next http.Handler) http.Handler {

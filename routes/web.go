@@ -3,7 +3,6 @@ package routes
 import (
 	"github.com/gorilla/mux"
 	"goblong/app/http/controllers"
-	"goblong/app/http/middlewares"
 	"net/http"
 )
 
@@ -45,7 +44,11 @@ func RegisterWebRoutes(r *mux.Router) {
 		Methods("POST").
 		Name("articles.delete")
 
+	// Static resource
+	r.PathPrefix("/css/").Handler(http.FileServer(http.Dir("./public")))
+	r.PathPrefix("/js/").Handler(http.FileServer(http.Dir("./public")))
+
 	// Middleware force content is HTML
-	r.Use(middlewares.ForceHTML)
+	//r.Use(middlewares.ForceHTML)
 
 }
