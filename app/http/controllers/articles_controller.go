@@ -3,15 +3,13 @@ package controllers
 import (
 	"database/sql"
 	"fmt"
+	"goblong/app/models/article"
 	"goblong/pkg/logger"
-	"goblong/pkg/model/article"
 	"goblong/pkg/route"
-	"goblong/pkg/types"
+	"goblong/pkg/view"
 	"gorm.io/gorm"
 	"html/template"
 	"net/http"
-	"path/filepath"
-	"strconv"
 	"unicode/utf8"
 )
 
@@ -45,27 +43,8 @@ func (*ArticlesController) Show(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "500 Server Internal error")
 		}
 	} else {
-
-		// Set related template path
-		viewDir := "resources/views"
-
-		// All layouts
-		files, err := filepath.Glob(viewDir + "/layouts/*.gohtml")
-		logger.LogError(err)
-
-		// Append show article page
-		newFiles := append(files, viewDir+"/articles/show.gohtml")
-
-		tmpl, err := template.New("show.gohtml").
-			Funcs(template.FuncMap{
-				"RouteName2URL": route.Name2URL,
-				"Int64ToString": types.Int64ToString,
-			}).ParseFiles(newFiles...)
-
-		logger.LogError(err)
-
-		// Render
-		tmpl.ExecuteTemplate(w, "app", articleRecord)
+		// Render article
+		view.Render(w, "articles.show", articleRecord)
 
 	}
 
@@ -83,25 +62,8 @@ func (*ArticlesController) Index(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "500 Internal Server error")
 
 	} else {
-		// Load templates
-
-		// Set template related path
-		viewDir := "resources/views"
-
-		// All layout slices
-		files, err := filepath.Glob(viewDir + "/layouts/*.gohtml")
-		logger.LogError(err)
-
-		// Add our target file
-		newFiles := append(files, viewDir+"/articles/index.gohtml")
-
-		// Parsing template file
-		tmpl, err := template.ParseFiles(newFiles...)
-		logger.LogError(err)
-
-		// Render template files
-		tmpl.ExecuteTemplate(w, "app", articles)
-
+		// Render articles
+		view.Render(w, "articles.index", articles)
 	}
 
 }
@@ -159,7 +121,7 @@ func (*ArticlesController) Store(w http.ResponseWriter, r *http.Request) {
 		}
 		_article.Create()
 		if _article.ID > 0 {
-			fmt.Fprint(w, "Insert ID: "+strconv.FormatInt(int64(_article.ID), 10))
+			fmt.Fprint(w, "Insert ID: "+_article.GetStringID())
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprint(w, "Create article failed please contact administrator")

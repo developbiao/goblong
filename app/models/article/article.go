@@ -1,17 +1,18 @@
 package article
 
 import (
+	"goblong/app/models"
 	"goblong/pkg/route"
-	"strconv"
 )
 
 // Article model
 type Article struct {
-	ID    int64
+	models.BaseModel
+
 	Title string
 	Body  string
 }
 
 func (a Article) Link() string {
-	return route.Name2URL("articles.show", "id", strconv.FormatInt(a.ID, 10))
+	return route.Name2URL("articles.show", "id", a.GetStringID())
 }

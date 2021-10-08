@@ -13,8 +13,7 @@
       {{ .Body }}
 
       {{/* Build delete button  */}}
-      {{ $idString := Int64ToString .ID  }}
-      <form class="mt-4" action="{{ RouteName2URL "articles.delete" "id" $idString }}" method="post">
+      <form class="mt-4" action="{{ RouteName2URL "articles.delete" "id" .GetStringID }}" method="post">
         <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure delete this article?')">Delete</button>
       </form>
 
