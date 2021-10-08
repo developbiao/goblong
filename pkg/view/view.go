@@ -1,6 +1,7 @@
 package view
 
 import (
+	"fmt"
 	"goblong/pkg/logger"
 	"goblong/pkg/route"
 	"html/template"
@@ -10,29 +11,34 @@ import (
 )
 
 // Render template
-func Render(w io.Writer, name string, data interface{}) {
+func Render(w io.Writer, data interface{}, tplFiles ...string) {
 
 	// Set related template path
 	viewDir := "resources/views/"
 
-	// sugar syntax
-	name = strings.Replace(name, ".", "/", -1)
+	for i, f := range tplFiles {
+		// sugar syntax
+		tplFiles[i] = viewDir + strings.Replace(f, ".", "/", -1) + ".gohtml"
+	}
 
 	// All layouts
-	files, err := filepath.Glob(viewDir + "/layouts/*.gohtml")
+	layoutFiles, err := filepath.Glob(viewDir + "/layouts/*.gohtml")
 	logger.LogError(err)
 
 	// Append show article page
-	newFiles := append(files, viewDir+"/articles/show.gohtml")
+	allFiles := append(layoutFiles, tplFiles...)
 
-	tmpl, err := template.New(name).
+	tmpl, err := template.New("").
 		Funcs(template.FuncMap{
 			"RouteName2URL": route.Name2URL,
-		}).ParseFiles(newFiles...)
+		}).ParseFiles(allFiles...)
 
 	logger.LogError(err)
 
 	// Render
-	tmpl.ExecuteTemplate(w, "app", data)
+	tmplErr := tmpl.ExecuteTemplate(w, "app", data)
+	if tmplErr != nil {
+		fmt.Println("Render Error! >>> ", tmplErr)
+	}
 
 }

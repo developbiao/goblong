@@ -1,14 +1,12 @@
 package controllers
 
 import (
-	"database/sql"
 	"fmt"
 	"goblong/app/models/article"
 	"goblong/pkg/logger"
 	"goblong/pkg/route"
 	"goblong/pkg/view"
 	"gorm.io/gorm"
-	"html/template"
 	"net/http"
 	"unicode/utf8"
 )
@@ -19,7 +17,7 @@ type ArticlesController struct {
 // Articles from data
 type ArticlesFormData struct {
 	Title, Body string
-	URL         string
+	Article     article.Article
 	Errors      map[string]string
 }
 
@@ -44,7 +42,7 @@ func (*ArticlesController) Show(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		// Render article
-		view.Render(w, "articles.show", articleRecord)
+		view.Render(w, articleRecord, "articles.show")
 
 	}
 
@@ -63,7 +61,7 @@ func (*ArticlesController) Index(w http.ResponseWriter, r *http.Request) {
 
 	} else {
 		// Render articles
-		view.Render(w, "articles.index", articles)
+		view.Render(w, articles, "articles.index")
 	}
 
 }
@@ -91,19 +89,7 @@ func validateArticleFormData(title string, body string) map[string]string {
 
 // Create article page
 func (*ArticlesController) Create(w http.ResponseWriter, r *http.Request) {
-	storeURL := route.Name2URL("articles.store")
-	data := ArticlesFormData{
-		Title:  "",
-		Body:   "",
-		URL:    storeURL,
-		Errors: nil,
-	}
-
-	tmpl, err := template.ParseFiles("resources/views/articles/create.gohtml")
-	if err != nil {
-		panic(err)
-	}
-	tmpl.Execute(w, data)
+	view.Render(w, ArticlesFormData{}, "articles.create", "articles._form_field")
 }
 
 // Store article
@@ -128,20 +114,12 @@ func (*ArticlesController) Store(w http.ResponseWriter, r *http.Request) {
 		}
 
 	} else {
-
-		storeURL := route.Name2URL("article.store")
-		data := ArticlesFormData{
+		view.Render(w, ArticlesFormData{
 			Title:  title,
 			Body:   body,
-			URL:    storeURL,
 			Errors: errors,
-		}
-		tmpl, err := template.ParseFiles("resources/views/articles/create.gohtml")
-		if err != nil {
-			panic(err)
-		}
+		}, "articles.create", "articles._form_field")
 
-		tmpl.Execute(w, data)
 	}
 
 }
@@ -153,27 +131,22 @@ func (*ArticlesController) Edit(w http.ResponseWriter, r *http.Request) {
 	id := route.GetRouteVariable("id", r)
 
 	// Get record by article id
-	articleRecord, err := article.Get(id)
+	_articleRecord, err := article.Get(id)
 
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if err == gorm.ErrRecordNotFound {
 			w.WriteHeader(http.StatusNotFound)
 		} else {
 			logger.LogError(err)
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 	} else {
-		updateURL := route.Name2URL("articles.update", "id", id)
-		data := ArticlesFormData{
-			Title:  articleRecord.Title,
-			Body:   articleRecord.Body,
-			URL:    updateURL,
-			Errors: nil,
-		}
-		tmpl, err := template.ParseFiles("resources/views/articles/edit.gohtml")
-		logger.LogError(err)
-
-		tmpl.Execute(w, data)
+		view.Render(w, ArticlesFormData{
+			Title:   _articleRecord.Title,
+			Body:    _articleRecord.Body,
+			Article: _articleRecord,
+			Errors:  nil,
+		}, "articles.edit", "articles._form_field")
 	}
 }
 
@@ -222,18 +195,12 @@ func (*ArticlesController) Update(w http.ResponseWriter, r *http.Request) {
 			}
 
 		} else {
-			updateURL := route.Name2URL("articles.update", "id", id)
-			data := ArticlesFormData{
-				Title:  title,
-				Body:   body,
-				URL:    updateURL,
-				Errors: errors,
-			}
-
-			tmpl, err := template.ParseFiles("resources/views/articles/edit.gohtml")
-			logger.LogError(err)
-
-			tmpl.Execute(w, data)
+			view.Render(w, ArticlesFormData{
+				Title:   title,
+				Body:    body,
+				Article: _article,
+				Errors:  errors,
+			}, "articles.edit", "articles._form_field")
 		}
 
 	}
