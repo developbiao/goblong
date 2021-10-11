@@ -14,13 +14,6 @@ import (
 type ArticlesController struct {
 }
 
-// Articles from data
-type ArticlesFormData struct {
-	Title, Body string
-	Article     article.Article
-	Errors      map[string]string
-}
-
 // Show article
 func (*ArticlesController) Show(w http.ResponseWriter, r *http.Request) {
 
@@ -89,7 +82,7 @@ func validateArticleFormData(title string, body string) map[string]string {
 
 // Create article page
 func (*ArticlesController) Create(w http.ResponseWriter, r *http.Request) {
-	view.Render(w, ArticlesFormData{}, "articles.create", "articles._form_field")
+	view.Render(w, view.D{}, "articles.create", "articles._form_field")
 }
 
 // Store article
@@ -114,10 +107,10 @@ func (*ArticlesController) Store(w http.ResponseWriter, r *http.Request) {
 		}
 
 	} else {
-		view.Render(w, ArticlesFormData{
-			Title:  title,
-			Body:   body,
-			Errors: errors,
+		view.Render(w, view.D{
+			"Title":  title,
+			"Body":   body,
+			"Errors": errors,
 		}, "articles.create", "articles._form_field")
 
 	}
@@ -141,11 +134,9 @@ func (*ArticlesController) Edit(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 	} else {
-		view.Render(w, ArticlesFormData{
-			Title:   _articleRecord.Title,
-			Body:    _articleRecord.Body,
-			Article: _articleRecord,
-			Errors:  nil,
+		view.Render(w, view.D{
+			"Article": _articleRecord,
+			"Errors":  view.D{},
 		}, "articles.edit", "articles._form_field")
 	}
 }
@@ -195,11 +186,9 @@ func (*ArticlesController) Update(w http.ResponseWriter, r *http.Request) {
 			}
 
 		} else {
-			view.Render(w, ArticlesFormData{
-				Title:   title,
-				Body:    body,
-				Article: _article,
-				Errors:  errors,
+			view.Render(w, view.D{
+				"Article": _article,
+				"Errors":  errors,
 			}, "articles.edit", "articles._form_field")
 		}
 

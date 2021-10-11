@@ -10,8 +10,21 @@ import (
 	"strings"
 )
 
-// Render template
+// D represent map[string]interface
+type D map[string]interface{}
+
+// Render common view
 func Render(w io.Writer, data interface{}, tplFiles ...string) {
+	RenderTemplate(w, "app", data, tplFiles...)
+}
+
+// Render simple view
+func RenderSimple(w io.Writer, data interface{}, tplFiles ...string) {
+	RenderTemplate(w, "simple", data, tplFiles...)
+}
+
+// Render template
+func RenderTemplate(w io.Writer, name string, data interface{}, tplFiles ...string) {
 
 	// Set related template path
 	viewDir := "resources/views/"
@@ -36,7 +49,7 @@ func Render(w io.Writer, data interface{}, tplFiles ...string) {
 	logger.LogError(err)
 
 	// Render
-	tmplErr := tmpl.ExecuteTemplate(w, "app", data)
+	tmplErr := tmpl.ExecuteTemplate(w, name, data)
 	if tmplErr != nil {
 		fmt.Println("Render Error! >>> ", tmplErr)
 	}

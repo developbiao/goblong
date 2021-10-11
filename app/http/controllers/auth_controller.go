@@ -11,7 +11,7 @@ type AuthController struct {
 
 // Register page
 func (*AuthController) Register(w http.ResponseWriter, r *http.Request) {
-	view.Render(w, ArticlesFormData{}, "auth.register")
+	view.RenderSimple(w, view.D{}, "auth.register")
 }
 
 // Do Register logic
