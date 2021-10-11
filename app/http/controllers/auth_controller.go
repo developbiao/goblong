@@ -16,5 +16,9 @@ func (*AuthController) Register(w http.ResponseWriter, r *http.Request) {
 
 // Do Register logic
 func (*AuthController) DoRegister(w http.ResponseWriter, r *http.Request) {
-	//
+	// 1. validation form
+
+	// 2. create user and redirect to home page
+
+	// 3. invalid form re display register form page
 }

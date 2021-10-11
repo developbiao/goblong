@@ -1,7 +1,10 @@
 package bootstrap
 
 import (
+	"goblong/app/models/article"
+	"goblong/app/models/user"
 	"goblong/pkg/model"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -20,5 +23,17 @@ func SetupDB() {
 
 	// Set each connection expired time
 	sqlDB.SetConnMaxLifetime(5 * time.Minute)
+
+	// Create table and maintain
+	migration(db)
+
+}
+
+func migration(db *gorm.DB) {
+	// Automatic migration
+	db.AutoMigrate(
+		&user.User{},
+		&article.Article{},
+	)
 
 }
