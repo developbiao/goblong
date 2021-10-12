@@ -27,6 +27,7 @@ func ValidateRegistrationForm(data user.User) map[string][]string {
 			"required:Email是必填项",
 			"min:Email长度需大于6",
 			"max:Email长度需小于30",
+			"email:Email格式不正确",
 		},
 		"password": []string{
 			"required:密码是必填项",
