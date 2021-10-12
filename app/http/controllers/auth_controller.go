@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"encoding/json"
 	"fmt"
 	"goblong/app/models/user"
 	"goblong/app/requests"
@@ -32,8 +31,10 @@ func (*AuthController) DoRegister(w http.ResponseWriter, r *http.Request) {
 	errs := requests.ValidateRegistrationForm(_user)
 	if len(errs) > 0 {
 		// error happen detected
-		data, _ := json.MarshalIndent(errs, "", " ")
-		fmt.Fprint(w, string(data))
+		view.RenderSimple(w, view.D{
+			"Errors": errs,
+			"User":   _user,
+		}, "auth.register")
 	} else {
 		//  create user and redirect to home page
 		_user.Create()
@@ -45,7 +46,7 @@ func (*AuthController) DoRegister(w http.ResponseWriter, r *http.Request) {
 			fmt.Print(w, "Create user failed, Please contact administrator")
 		}
 
-		fmt.Fprint(w, "Validation success!")
+		fmt.Fprint(w, " Validation success!")
 
 	}
 	//  invalid form re display register form page
