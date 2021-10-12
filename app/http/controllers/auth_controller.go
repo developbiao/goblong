@@ -43,10 +43,8 @@ func (*AuthController) DoRegister(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "Insert user success, ID is "+_user.GetStringID())
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Print(w, "Create user failed, Please contact administrator")
+			fmt.Fprint(w, "Create user failed, Please contact administrator")
 		}
-
-		fmt.Fprint(w, " Validation success!")
 
 	}
 	//  invalid form re display register form page
