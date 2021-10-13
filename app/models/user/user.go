@@ -11,3 +11,8 @@ type User struct {
 	// gorm: "-" set GORM read and write ignore this field
 	PasswordConfirm string `gorm:"-" valid:"password_confirm"`
 }
+
+// Compare user password from client
+func (u User) ComparePassword(password string) bool {
+	return u.Password == password
+}

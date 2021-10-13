@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"goblong/app/models/user"
 	"goblong/app/requests"
-	"goblong/pkg/session"
+	"goblong/pkg/auth"
 	"goblong/pkg/view"
 	"net/http"
 )
@@ -51,11 +51,28 @@ func (*AuthController) DoRegister(w http.ResponseWriter, r *http.Request) {
 	//  invalid form re display register form page
 }
 
+// Login page
 func (*AuthController) Login(w http.ResponseWriter, r *http.Request) {
 	view.RenderSimple(w, view.D{}, "auth.login")
 }
 
+// Process post login
 func (*AuthController) DoLogin(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("session uid:", session.Get("uid"))
-	fmt.Fprint(w, session.Get("uid"))
+	// initialization form
+	email := r.PostFormValue("email")
+	password := r.PostFormValue("password")
+
+	// Attmpet login
+	if err := auth.Attempt(email, password); err == nil {
+		// Login success
+		http.Redirect(w, r, "/", http.StatusFound)
+	} else {
+		// Login failed dispaly error
+		view.RenderSimple(w, view.D{
+			"Error":    err,
+			"Email":    email,
+			"Password": password,
+		}, "auth.login")
+	}
+
 }
