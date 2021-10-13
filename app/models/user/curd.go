@@ -25,10 +25,10 @@ func Get(idstr string) (User, error) {
 	return user, nil
 }
 
-// Get by email
+// Get user  by email
 func GetByEmail(email string) (User, error) {
 	var user User
-	if err := model.DB.Where("email = ", email).First(&user).Error; err != nil {
+	if err := model.DB.Where("email = ?", email).First(&user).Error; err != nil {
 		return user, err
 	}
 	return user, nil
