@@ -69,7 +69,7 @@ func (*AuthController) DoLogin(w http.ResponseWriter, r *http.Request) {
 	} else {
 		// Login failed dispaly error
 		view.RenderSimple(w, view.D{
-			"Error":    err,
+			"Error":    err.Error,
 			"Email":    email,
 			"Password": password,
 		}, "auth.login")
