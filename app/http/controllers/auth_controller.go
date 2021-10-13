@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"goblong/app/models/user"
 	"goblong/app/requests"
+	"goblong/pkg/session"
 	"goblong/pkg/view"
 	"net/http"
 )
@@ -48,4 +49,13 @@ func (*AuthController) DoRegister(w http.ResponseWriter, r *http.Request) {
 
 	}
 	//  invalid form re display register form page
+}
+
+func (*AuthController) Login(w http.ResponseWriter, r *http.Request) {
+	view.RenderSimple(w, view.D{}, "auth.login")
+}
+
+func (*AuthController) DoLogin(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("session uid:", session.Get("uid"))
+	fmt.Fprint(w, session.Get("uid"))
 }
