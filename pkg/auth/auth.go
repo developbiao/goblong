@@ -35,6 +35,10 @@ func User() user.User {
 func Attempt(email string, password string) error {
 	// 1. Get user by email
 	_user, err := user.GetByEmail(email)
+	if _user.ID > 0 {
+		fmt.Println("Get User:", _user.Name)
+
+	}
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return errors.New("Account or password incorrect")
