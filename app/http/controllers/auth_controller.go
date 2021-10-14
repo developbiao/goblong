@@ -62,14 +62,14 @@ func (*AuthController) DoLogin(w http.ResponseWriter, r *http.Request) {
 	email := r.PostFormValue("email")
 	password := r.PostFormValue("password")
 
-	// Attmpet login
+	// Attempt login
 	if err := auth.Attempt(email, password); err == nil {
 		// Login success
 		http.Redirect(w, r, "/", http.StatusFound)
 	} else {
-		// Login failed dispaly error
+		// Login failed display error
 		view.RenderSimple(w, view.D{
-			"Error":    err.Error,
+			"Error":    err.Error(),
 			"Email":    email,
 			"Password": password,
 		}, "auth.login")

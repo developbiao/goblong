@@ -4,7 +4,6 @@ import (
 	"errors"
 	"goblong/app/models/user"
 	"goblong/pkg/session"
-
 	"gorm.io/gorm"
 )
 
@@ -32,10 +31,12 @@ func User() user.User {
 func Attempt(email string, password string) error {
 	// 1. Get user by email
 	_user, err := user.GetByEmail(email)
-	if err == gorm.ErrRecordNotFound {
-		return errors.New("Account or password incorrect")
-	} else {
-		return errors.New("Interal server error")
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return errors.New("Account or password incorrect")
+		} else {
+			return errors.New("Interal server error")
+		}
 	}
 	// 2. Compare password with database
 	if !_user.ComparePassword(password) {

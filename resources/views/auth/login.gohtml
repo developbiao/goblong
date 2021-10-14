@@ -10,12 +10,10 @@ Login
       <div class="form-group row mb-3">
         <label for="email" class="col-md-4 col-form-label text-md-right">E-mail</label>
         <div class="col-md-6">
-          <input id="email" type="email" class="form-control {{if .Errors.email }}is-invalid {{end}}" name="email" value="{{ .User.Email}}" required="">
-          {{ with .Errors.email }}
+          <input id="email" type="email" class="form-control {{if .Error }}is-invalid {{end}}" name="email" value="{{ .Email}}" required="">
+          {{ with .Error }}
             <div class="invalid-feedback">
-              {{ range $message := . }}
-                <p>{{ $message }}</p>
-              {{ end }}
+              <p>{{ . }}</p>
             </div>
           {{ end }}
         </div>
@@ -24,14 +22,7 @@ Login
       <div class="form-group row mb-3">
         <label for="password" class="col-md-4 col-form-label text-md-right">Password</label>
         <div class="col-md-6">
-          <input id="password" type="password" class="form-control {{if .Errors.password}}is-invalid {{end}}" name="password" value="{{ .User.Password }}" required="">
-          {{ with .Errors.password }}
-            <div class="invalid-feedback">
-              {{ range $message := . }}
-                <p>{{ $message }}</p>
-              {{ end }}
-            </div>
-          {{ end }}
+          <input id="password" type="password" class="form-control {{if .Errors.password}}is-invalid {{end}}" name="password" value="{{ .Password }}" required="">
         </div>
       </div>
 
