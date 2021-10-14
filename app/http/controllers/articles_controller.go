@@ -35,7 +35,9 @@ func (*ArticlesController) Show(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		// Render article
-		view.Render(w, articleRecord, "articles.show")
+		view.Render(w, view.D{
+			"Article": articleRecord,
+		}, "articles.show")
 
 	}
 
@@ -54,7 +56,9 @@ func (*ArticlesController) Index(w http.ResponseWriter, r *http.Request) {
 
 	} else {
 		// Render articles
-		view.Render(w, articles, "articles.index")
+		view.Render(w, view.D{
+			"Articles": articles,
+		}, "articles.index")
 	}
 
 }

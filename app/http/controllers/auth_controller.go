@@ -76,3 +76,11 @@ func (*AuthController) DoLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+
+// Logout
+func (*AuthController) Logout(w http.ResponseWriter, r *http.Request) {
+	if auth.Check() {
+		auth.Logout()
+	}
+	http.Redirect(w, r, "/", http.StatusFound)
+}

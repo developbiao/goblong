@@ -13,11 +13,12 @@ func RegisterWebRoutes(r *mux.Router) {
 
 	// Static page
 	r.NotFoundHandler = http.HandlerFunc(pc.NotFound)
-	r.HandleFunc("/", pc.Home).Methods("GET").Name("home")
 	r.HandleFunc("/about", pc.About).Methods("GET").Name("about")
 
 	// Article pages
 	ac := new(controllers.ArticlesController)
+	// Home page
+	r.HandleFunc("/", ac.Index).Methods("GET").Name("home")
 	r.HandleFunc("/articles/{id:[0-9]+}", ac.Show).Methods("GET").Name("articles.show")
 
 	// Articles
@@ -53,6 +54,9 @@ func RegisterWebRoutes(r *mux.Router) {
 	// Login
 	r.HandleFunc("/auth/login", auc.Login).Methods("GET").Name("auth.login")
 	r.HandleFunc("/auth/dologin", auc.DoLogin).Methods("POST").Name("auth.dologin")
+
+	// Logout
+	r.HandleFunc("/auth/logout", auc.Logout).Methods("post").Name("auth.logout")
 
 	// Static resource
 	r.PathPrefix("/css/").Handler(http.FileServer(http.Dir("./public")))
