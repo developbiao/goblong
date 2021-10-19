@@ -1,7 +1,6 @@
 package user
 
 import (
-	"fmt"
 	"goblong/app/models"
 	"goblong/pkg/password"
 )
@@ -18,6 +17,5 @@ type User struct {
 
 // Compare user password from client
 func (u User) ComparePassword(_password string) bool {
-	fmt.Println("Plaintext password:", _password)
 	return password.CheckHash(_password, u.Password)
 }
