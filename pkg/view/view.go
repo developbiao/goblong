@@ -3,6 +3,7 @@ package view
 import (
 	"fmt"
 	"goblong/pkg/auth"
+	"goblong/pkg/flash"
 	"goblong/pkg/logger"
 	"goblong/pkg/route"
 	"html/template"
@@ -28,6 +29,8 @@ func RenderSimple(w io.Writer, data D, tplFiles ...string) {
 func RenderTemplate(w io.Writer, name string, data D, tplFiles ...string) {
 	// Get common template
 	data["isLogined"] = auth.Check()
+	data["loginUser"] = auth.User
+	data["flash"] = flash.All()
 
 	// Get template files
 	allFiles := getTemplateFiles(tplFiles...)

@@ -5,6 +5,7 @@ import (
 	"goblong/app/models/user"
 	"goblong/app/requests"
 	"goblong/pkg/auth"
+	"goblong/pkg/flash"
 	"goblong/pkg/view"
 	"net/http"
 )
@@ -41,6 +42,7 @@ func (*AuthController) DoRegister(w http.ResponseWriter, r *http.Request) {
 		_user.Create()
 
 		if _user.ID > 0 {
+			flash.Success("Congratulations Register success!")
 			auth.Login(_user)
 			http.Redirect(w, r, "/", http.StatusFound)
 
@@ -67,6 +69,8 @@ func (*AuthController) DoLogin(w http.ResponseWriter, r *http.Request) {
 	// Attempt login
 	if err := auth.Attempt(email, password); err == nil {
 		// Login success
+		flash.Success("Welcome back!")
+		// Login success
 		http.Redirect(w, r, "/", http.StatusFound)
 	} else {
 		// Login failed display error
@@ -84,5 +88,6 @@ func (*AuthController) Logout(w http.ResponseWriter, r *http.Request) {
 	if auth.Check() {
 		auth.Logout()
 	}
+	flash.Success("You already logout")
 	http.Redirect(w, r, "/", http.StatusFound)
 }
