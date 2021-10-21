@@ -10,7 +10,7 @@
       <p class="blog-post-meta text-secondary">Release From <a href="" class="font-weight-bold">2021-09-29</a> by <a href="#" class="font-weight-bold">Macro</a></p>
 
       <hr>
-      {{ .Body }}
+      {{ .Article.Body }}
 
       {{/* Build delete button  */}}
       <form class="mt-4" action="{{ RouteName2URL "articles.delete" "id" .Article.GetStringID }}" method="post">

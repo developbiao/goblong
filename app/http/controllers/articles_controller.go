@@ -3,12 +3,12 @@ package controllers
 import (
 	"fmt"
 	"goblong/app/models/article"
+	"goblong/app/requests"
 	"goblong/pkg/logger"
 	"goblong/pkg/route"
 	"goblong/pkg/view"
 	"gorm.io/gorm"
 	"net/http"
-	"unicode/utf8"
 )
 
 type ArticlesController struct {
@@ -63,27 +63,6 @@ func (*ArticlesController) Index(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// Validation article form data
-func validateArticleFormData(title string, body string) map[string]string {
-
-	errors := make(map[string]string)
-
-	// Validation title
-	if title == "" {
-		errors["title"] = "Title can'not is empty"
-	} else if utf8.RuneCountInString(title) < 3 || utf8.RuneCountInString(title) > 40 {
-		errors["title"] = "Title length must between 3 ~ 40 characters"
-	}
-
-	// Validation  body
-	if body == "" {
-		errors["body"] = "Body can'not is empty"
-	} else if utf8.RuneCountInString(body) < 10 {
-		errors["body"] = "Body length must granter than 10 characters"
-	}
-	return errors
-}
-
 // Create article page
 func (*ArticlesController) Create(w http.ResponseWriter, r *http.Request) {
 	view.Render(w, view.D{}, "articles.create", "articles._form_field")
@@ -91,20 +70,21 @@ func (*ArticlesController) Create(w http.ResponseWriter, r *http.Request) {
 
 // Store article
 func (*ArticlesController) Store(w http.ResponseWriter, r *http.Request) {
+	// init article
+	_article := article.Article{
+		Title: r.PostFormValue("title"),
+		Body:  r.PostFormValue("body"),
+	}
 
-	title := r.PostFormValue("title")
-	body := r.PostFormValue("body")
-
-	errors := validateArticleFormData(title, body)
+	//errors := validateArticleFormData(title, body)
+	errors := requests.ValidateArticleForm(_article)
 
 	if len(errors) == 0 {
-		_article := article.Article{
-			Title: title,
-			Body:  body,
-		}
 		_article.Create()
 		if _article.ID > 0 {
 			fmt.Fprint(w, "Insert ID: "+_article.GetStringID())
+			indexURL := route.Name2URL("articles.show", "id", _article.GetStringID())
+			http.Redirect(w, r, indexURL, http.StatusFound)
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprint(w, "Create article failed please contact administrator")
@@ -112,9 +92,8 @@ func (*ArticlesController) Store(w http.ResponseWriter, r *http.Request) {
 
 	} else {
 		view.Render(w, view.D{
-			"Title":  title,
-			"Body":   body,
-			"Errors": errors,
+			"Article": _article,
+			"Errors":  errors,
 		}, "articles.create", "articles._form_field")
 
 	}
@@ -163,14 +142,12 @@ func (*ArticlesController) Update(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "Internal server error")
 		}
 	} else {
-		title := r.PostFormValue("title")
-		body := r.PostFormValue("body")
+		_article.Title = r.PostFormValue("title")
+		_article.Body = r.PostFormValue("body")
 
-		errors := validateArticleFormData(title, body)
+		errors := requests.ValidateArticleForm(_article)
 
 		if len(errors) == 0 {
-			_article.Title = title
-			_article.Body = body
 			rowsAffected, err := _article.Update()
 			if err != nil {
 				logger.LogError(err)
