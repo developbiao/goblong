@@ -6,10 +6,17 @@ import (
 	"github.com/gorilla/mux"
 	"goblong/app/http/middlewares"
 	"goblong/bootstrap"
+	"goblong/config"
+	c "goblong/pkg/config"
 	"net/http"
 )
 
 var router *mux.Router
+
+func init() {
+	// Initialization config
+	config.Initialize()
+}
 
 func main() {
 
@@ -34,5 +41,5 @@ func main() {
 		}
 	})
 
-	http.ListenAndServe(":3000", middlewares.RemoveTrailingSlash(router))
+	http.ListenAndServe(":"+c.GetString("app.port"), middlewares.RemoveTrailingSlash(router))
 }

@@ -19,7 +19,7 @@ func Get(idstr string) (Article, error) {
 // Get All articles
 func GetAll() ([]Article, error) {
 	var articles []Article
-	if err := model.DB.Find(&articles).Error; err != nil {
+	if err := model.DB.Order("updated_at DESC").Find(&articles).Error; err != nil {
 		return articles, err
 	}
 	return articles, nil

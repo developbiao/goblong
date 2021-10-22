@@ -33,4 +33,6 @@ Thumbs.db
 # Ignore tmp directory
 tmp
 
+# Ignore config
+.env
 
