@@ -25,38 +25,38 @@ func RegisterWebRoutes(r *mux.Router) {
 	r.HandleFunc("/articles", ac.Index).Methods("GET").Name("articles.index")
 
 	// Create article page
-	r.HandleFunc("/articles/create", ac.Create).
+	r.HandleFunc("/articles/create", middlewares.Auth(ac.Create)).
 		Methods("GET").
 		Name("articles.create")
 
 	// Save article
-	r.HandleFunc("/articles", ac.Store).Methods("POST").Name("articles.store")
+	r.HandleFunc("/articles", middlewares.Auth(ac.Store)).Methods("POST").Name("articles.store")
 
 	// edit
-	r.HandleFunc("/articles/{id:[0-9]+}/edit", ac.Edit).
+	r.HandleFunc("/articles/{id:[0-9]+}/edit", middlewares.Auth(ac.Edit)).
 		Methods("GET").
 		Name("articles.edit")
 	// update
-	r.HandleFunc("/articles/{id:[0-9]+}", ac.Update).
+	r.HandleFunc("/articles/{id:[0-9]+}", middlewares.Auth(ac.Update)).
 		Methods("POST").
 		Name("articles.update")
 
 	// Delete
-	r.HandleFunc("/articles/{id:[0-9]+}/delete", ac.Delete).
+	r.HandleFunc("/articles/{id:[0-9]+}/delete", middlewares.Auth(ac.Delete)).
 		Methods("POST").
 		Name("articles.delete")
 
 	// User authorization
 	auc := new(controllers.AuthController)
-	r.HandleFunc("/auth/register", auc.Register).Methods("GET").Name("auth.register")
-	r.HandleFunc("/auth/do-register", auc.DoRegister).Methods("POST").Name("auth.doregister")
+	r.HandleFunc("/auth/register", middlewares.Guest(auc.Register)).Methods("GET").Name("auth.register")
+	r.HandleFunc("/auth/do-register", middlewares.Guest(auc.DoRegister)).Methods("POST").Name("auth.doregister")
 
 	// Login
-	r.HandleFunc("/auth/login", auc.Login).Methods("GET").Name("auth.login")
-	r.HandleFunc("/auth/dologin", auc.DoLogin).Methods("POST").Name("auth.dologin")
+	r.HandleFunc("/auth/login", middlewares.Guest(auc.Login)).Methods("GET").Name("auth.login")
+	r.HandleFunc("/auth/dologin", middlewares.Guest(auc.DoLogin)).Methods("POST").Name("auth.dologin")
 
 	// Logout
-	r.HandleFunc("/auth/logout", auc.Logout).Methods("post").Name("auth.logout")
+	r.HandleFunc("/auth/logout", middlewares.Auth(auc.Logout)).Methods("post").Name("auth.logout")
 
 	// Static resource
 	r.PathPrefix("/css/").Handler(http.FileServer(http.Dir("./public")))
