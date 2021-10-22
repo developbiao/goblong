@@ -19,3 +19,8 @@ type User struct {
 func (u User) ComparePassword(_password string) bool {
 	return password.CheckHash(_password, u.Password)
 }
+
+// Generate link
+func (u User) Link() string {
+	return ""
+}
