@@ -25,6 +25,15 @@ func GetAll() ([]Article, error) {
 	return articles, nil
 }
 
+// Get articles by user id
+func GetByUserID(uid string) ([]Article, error) {
+	var articles []Article
+	if err := model.DB.Where("`user_id` = ?", uid).Preload("User").Order("updated_at DESC").Find(&articles).Error; err != nil {
+		return articles, err
+	}
+	return articles, nil
+}
+
 // Create article
 func (article *Article) Create() (err error) {
 	result := model.DB.Create(&article)

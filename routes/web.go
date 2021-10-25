@@ -1,10 +1,11 @@
 package routes
 
 import (
-	"github.com/gorilla/mux"
 	"goblong/app/http/controllers"
 	"goblong/app/http/middlewares"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 // Register web routes
@@ -65,5 +66,9 @@ func RegisterWebRoutes(r *mux.Router) {
 	// Middleware force content is HTML
 	//r.Use(middlewares.ForceHTML)
 	r.Use(middlewares.StartSession)
+
+	// User authoriation
+	uc := new(controllers.UserController)
+	r.HandleFunc("/users/{id:[0-9]+}", uc.Show).Methods("GET").Name("users.show")
 
 }
