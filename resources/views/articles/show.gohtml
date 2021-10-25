@@ -13,11 +13,13 @@
       <hr>
       {{ .Article.Body }}
 
-      {{/* Build delete button  */}}
+      {{/* Build edit and delete button  */}}
+      {{ if .CanModifyArticle }}
       <form class="mt-4" action="{{ RouteName2URL "articles.delete" "id" .Article.GetStringID }}" method="post">
         <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure delete this article?')">Delete</button>
         <a href="{{ RouteName2URL "articles.edit"  "id" .Article.GetStringID }}" class="btn btn-outline-secondary btn-sm">Edit</a>
       </form>
+      {{end}}
 
     </div><!-- /.blog-post -->
   </div>

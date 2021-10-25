@@ -3,12 +3,15 @@ package controllers
 import (
 	"fmt"
 	"goblong/app/models/article"
+	"goblong/app/policies"
 	"goblong/app/requests"
+	"goblong/pkg/flash"
 	"goblong/pkg/logger"
 	"goblong/pkg/route"
 	"goblong/pkg/view"
-	"gorm.io/gorm"
 	"net/http"
+
+	"gorm.io/gorm"
 )
 
 type ArticlesController struct {
@@ -36,7 +39,8 @@ func (*ArticlesController) Show(w http.ResponseWriter, r *http.Request) {
 	} else {
 		// Render article
 		view.Render(w, view.D{
-			"Article": articleRecord,
+			"Article":          articleRecord,
+			"CanModifyArticle": policies.CanModifyArtile(articleRecord),
 		}, "articles.show", "articles._article_meta")
 
 	}
@@ -117,10 +121,16 @@ func (*ArticlesController) Edit(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 	} else {
-		view.Render(w, view.D{
-			"Article": _articleRecord,
-			"Errors":  view.D{},
-		}, "articles.edit", "articles._form_field")
+		if !policies.CanModifyArtile(_articleRecord) {
+			flash.Warning("UnAuthoriation opeartion")
+			http.Redirect(w, r, "/", http.StatusFound)
+		} else {
+			view.Render(w, view.D{
+				"Article": _articleRecord,
+				"Errors":  view.D{},
+			}, "articles.edit", "articles._form_field")
+
+		}
 	}
 }
 
@@ -142,6 +152,11 @@ func (*ArticlesController) Update(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, "Internal server error")
 		}
 	} else {
+		if !policies.CanModifyArtile(_article) {
+			flash.Warning("UnAuthoirzation opeartion")
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
 		_article.Title = r.PostFormValue("title")
 		_article.Body = r.PostFormValue("body")
 
@@ -195,6 +210,12 @@ func (*ArticlesController) Delete(w http.ResponseWriter, r *http.Request) {
 		}
 
 	} else {
+		if !policies.CanModifyArtile(_article) {
+			flash.Warning("UnAuthroization opeartion")
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
+
 		rowsAffected, err := _article.Delete()
 		if err != nil {
 			// Should be sql error
