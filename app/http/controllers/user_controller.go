@@ -8,16 +8,15 @@ import (
 	"goblong/pkg/route"
 	"goblong/pkg/view"
 	"net/http"
-
-	"gorm.io/gorm"
 )
 
 // User controller
 type UserController struct {
+	BaseController
 }
 
 // Show user prifile page
-func (*UserController) Show(w http.ResponseWriter, r *http.Request) {
+func (uc *UserController) Show(w http.ResponseWriter, r *http.Request) {
 	// Get url parameter
 	id := route.GetRouteVariable("id", r)
 
@@ -26,14 +25,7 @@ func (*UserController) Show(w http.ResponseWriter, r *http.Request) {
 
 	// Check error
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			w.WriteHeader(http.StatusNotFound)
-			fmt.Fprint(w, "404 user not found")
-		} else {
-			logger.LogError(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprint(w, "500 Internal server error")
-		}
+		uc.ResponseFromSQLError(w, err)
 	} else {
 		articles, err := article.GetByUserID(_user.GetStringID())
 		if err != nil {

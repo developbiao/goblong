@@ -5,20 +5,18 @@ import (
 	"goblong/app/models/article"
 	"goblong/app/policies"
 	"goblong/app/requests"
-	"goblong/pkg/flash"
 	"goblong/pkg/logger"
 	"goblong/pkg/route"
 	"goblong/pkg/view"
 	"net/http"
-
-	"gorm.io/gorm"
 )
 
 type ArticlesController struct {
+	BaseController
 }
 
 // Show article
-func (*ArticlesController) Show(w http.ResponseWriter, r *http.Request) {
+func (ac *ArticlesController) Show(w http.ResponseWriter, r *http.Request) {
 
 	// 1. get url parameters
 	id := route.GetRouteVariable("id", r)
@@ -27,15 +25,7 @@ func (*ArticlesController) Show(w http.ResponseWriter, r *http.Request) {
 	articleRecord, err := article.Get(id)
 
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			// Not found record
-			w.WriteHeader(http.StatusNotFound)
-			fmt.Fprint(w, "404 articleRecord not found")
-		} else {
-			logger.LogError(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprint(w, "500 Server Internal error")
-		}
+		ac.ResponseFromSQLError(w, err)
 	} else {
 		// Render article
 		view.Render(w, view.D{
@@ -48,16 +38,13 @@ func (*ArticlesController) Show(w http.ResponseWriter, r *http.Request) {
 }
 
 // Articles
-func (*ArticlesController) Index(w http.ResponseWriter, r *http.Request) {
+func (ac *ArticlesController) Index(w http.ResponseWriter, r *http.Request) {
 
 	// Get articles
 	articles, err := article.GetAll()
 
 	if err != nil {
-		logger.LogError(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, "500 Internal Server error")
-
+		ac.ResponseFromSQLError(w, err)
 	} else {
 		// Render articles
 		view.Render(w, view.D{
@@ -73,7 +60,7 @@ func (*ArticlesController) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 // Store article
-func (*ArticlesController) Store(w http.ResponseWriter, r *http.Request) {
+func (ac *ArticlesController) Store(w http.ResponseWriter, r *http.Request) {
 	// init article
 	_article := article.Article{
 		Title: r.PostFormValue("title"),
@@ -105,7 +92,7 @@ func (*ArticlesController) Store(w http.ResponseWriter, r *http.Request) {
 }
 
 // Edit article
-func (*ArticlesController) Edit(w http.ResponseWriter, r *http.Request) {
+func (ac *ArticlesController) Edit(w http.ResponseWriter, r *http.Request) {
 
 	// get url parameters
 	id := route.GetRouteVariable("id", r)
@@ -114,16 +101,10 @@ func (*ArticlesController) Edit(w http.ResponseWriter, r *http.Request) {
 	_articleRecord, err := article.Get(id)
 
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			w.WriteHeader(http.StatusNotFound)
-		} else {
-			logger.LogError(err)
-			w.WriteHeader(http.StatusInternalServerError)
-		}
+		ac.ResponseFromSQLError(w, err)
 	} else {
 		if !policies.CanModifyArtile(_articleRecord) {
-			flash.Warning("UnAuthoriation opeartion")
-			http.Redirect(w, r, "/", http.StatusFound)
+			ac.ResponseFromUnauthorized(w, r)
 		} else {
 			view.Render(w, view.D{
 				"Article": _articleRecord,
@@ -135,26 +116,17 @@ func (*ArticlesController) Edit(w http.ResponseWriter, r *http.Request) {
 }
 
 // Update article
-func (*ArticlesController) Update(w http.ResponseWriter, r *http.Request) {
+func (ac *ArticlesController) Update(w http.ResponseWriter, r *http.Request) {
 	// Get url parameter
 	id := route.GetRouteVariable("id", r)
 
 	// Get article
 	_article, err := article.Get(id)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			// Not found data
-			w.WriteHeader(http.StatusNotFound)
-			fmt.Fprint(w, "404 article not found")
-		} else {
-			logger.LogError(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprint(w, "Internal server error")
-		}
+		ac.ResponseFromSQLError(w, err)
 	} else {
 		if !policies.CanModifyArtile(_article) {
-			flash.Warning("UnAuthoirzation opeartion")
-			http.Redirect(w, r, "/", http.StatusFound)
+			ac.ResponseFromUnauthorized(w, r)
 			return
 		}
 		_article.Title = r.PostFormValue("title")
@@ -193,26 +165,18 @@ func (*ArticlesController) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 // Delete action
-func (*ArticlesController) Delete(w http.ResponseWriter, r *http.Request) {
+func (ac *ArticlesController) Delete(w http.ResponseWriter, r *http.Request) {
 	// Get id
 	id := route.GetRouteVariable("id", r)
 
 	// Get article by id
 	_article, err := article.Get(id)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			w.WriteHeader(http.StatusNotFound)
-			fmt.Fprint(w, "404 not found article")
-		} else {
-			logger.LogError(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprint(w, "Internal server error")
-		}
 
 	} else {
+		ac.ResponseFromSQLError(w, err)
 		if !policies.CanModifyArtile(_article) {
-			flash.Warning("UnAuthroization opeartion")
-			http.Redirect(w, r, "/", http.StatusFound)
+			ac.ResponseFromUnauthorized(w, r)
 			return
 		}
 
