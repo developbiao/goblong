@@ -5,6 +5,7 @@ import (
 	"goblong/app/models/article"
 	"goblong/app/policies"
 	"goblong/app/requests"
+	"goblong/pkg/auth"
 	"goblong/pkg/logger"
 	"goblong/pkg/route"
 	"goblong/pkg/view"
@@ -62,9 +63,13 @@ func (*ArticlesController) Create(w http.ResponseWriter, r *http.Request) {
 // Store article
 func (ac *ArticlesController) Store(w http.ResponseWriter, r *http.Request) {
 	// init article
+	// Get current author
+	author := auth.User()
+
 	_article := article.Article{
-		Title: r.PostFormValue("title"),
-		Body:  r.PostFormValue("body"),
+		Title:  r.PostFormValue("title"),
+		Body:   r.PostFormValue("body"),
+		UserID: author.ID,
 	}
 
 	//errors := validateArticleFormData(title, body)
