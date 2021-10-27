@@ -22,6 +22,9 @@ func init() {
 
 		// App key for cookie gorilla/session
 		"key": config.Env("APP_KEY", "66333999dcf9ea060a0a6532b166da32f304af0de"),
+
+		// app url
+		"url": config.Env("APP_URL", "http://localhost:3000"),
 	})
 	fmt.Println("App Config Done!")
 }
