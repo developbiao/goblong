@@ -71,3 +71,18 @@ func (article *Article) Delete() (rowsAffected int64, err error) {
 	}
 	return result.RowsAffected, nil
 }
+
+// Get articles by category
+func GetByCategoryID(categoryID string, r *http.Request, perPage int) ([]Article, pagination.ViewData, error) {
+	// Init pager
+	db := model.DB.Model(Article{}).Where("category_id = ?", categoryID).Order("created_at DESC")
+	_pager := pagination.New(r, db, route.Name2URL("articles.index"), perPage)
+
+	// Get view data
+	viewData := _pager.Paging()
+
+	// Get data
+	var articles []Article
+	_pager.Results(&articles)
+	return articles, viewData, nil
+}

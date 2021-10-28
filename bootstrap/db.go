@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	"goblong/app/models/article"
+	"goblong/app/models/category"
 	"goblong/app/models/user"
 	"goblong/pkg/model"
 	"gorm.io/gorm"
@@ -34,6 +35,7 @@ func migration(db *gorm.DB) {
 	db.AutoMigrate(
 		&user.User{},
 		&article.Article{},
+		&category.Category{},
 	)
 
 }
