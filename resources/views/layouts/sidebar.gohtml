@@ -8,9 +8,10 @@
     <div class="p-4 bg-white rounded shadow-sm mb-3">
       <h5>Default category</h5>
       <ol class="list-unstyled mb-0">
-        <li><a href="#">Default</a></li>
-        <li><a href="#">Template</a></li>
-        <li><a href="#">Database</a></li>
+        {{ range $key, $category := .Categories }}
+          <li><a href="{{ $category.Link }}">{{ $category.Name }}</a></li>
+        {{ end }}
+        <li><a href="{{ RouteName2URL "categories.create" }}">+ Add category</a></li>
       </ol>
     </div>
 

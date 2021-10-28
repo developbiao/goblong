@@ -2,6 +2,7 @@ package view
 
 import (
 	"fmt"
+	"goblong/app/models/category"
 	"goblong/pkg/auth"
 	"goblong/pkg/flash"
 	"goblong/pkg/logger"
@@ -31,6 +32,7 @@ func RenderTemplate(w io.Writer, name string, data D, tplFiles ...string) {
 	data["isLogined"] = auth.Check()
 	data["loginUser"] = auth.User
 	data["flash"] = flash.All()
+	data["Categories"], _ = category.All()
 
 	// Get template files
 	allFiles := getTemplateFiles(tplFiles...)
