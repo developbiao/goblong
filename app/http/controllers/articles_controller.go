@@ -8,6 +8,7 @@ import (
 	"goblong/pkg/auth"
 	"goblong/pkg/logger"
 	"goblong/pkg/route"
+	"goblong/pkg/types"
 	"goblong/pkg/view"
 	"net/http"
 )
@@ -58,7 +59,9 @@ func (ac *ArticlesController) Index(w http.ResponseWriter, r *http.Request) {
 
 // Create article page
 func (*ArticlesController) Create(w http.ResponseWriter, r *http.Request) {
-	view.Render(w, view.D{}, "articles.create", "articles._form_field")
+	view.Render(w, view.D{
+		"CategoryId": 1,
+	}, "articles.create", "articles._form_field")
 }
 
 // Store article
@@ -67,10 +70,12 @@ func (ac *ArticlesController) Store(w http.ResponseWriter, r *http.Request) {
 	// Get current author
 	author := auth.User()
 
+	categoryId := r.PostFormValue("category_id")
 	_article := article.Article{
-		Title:  r.PostFormValue("title"),
-		Body:   r.PostFormValue("body"),
-		UserID: author.ID,
+		Title:      r.PostFormValue("title"),
+		Body:       r.PostFormValue("body"),
+		CategoryID: uint64((types.StringToInt(categoryId))),
+		UserID:     author.ID,
 	}
 
 	//errors := validateArticleFormData(title, body)
