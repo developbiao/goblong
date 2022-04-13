@@ -1,15 +1,23 @@
 package main
 
 import (
+	"embed"
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/gorilla/mux"
 	"goblong/app/http/middlewares"
 	"goblong/bootstrap"
 	"goblong/config"
 	c "goblong/pkg/config"
 	"net/http"
+
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorilla/mux"
 )
+
+//go:embed resources/views/articles/*
+//go:embed resources/views/auth/*
+//go:embed resources/views/categories/*
+//go:embed resources/views/layouts/*
+var tplFS embed.FS
 
 var router *mux.Router
 
@@ -22,6 +30,9 @@ func main() {
 
 	// Setup ORM
 	bootstrap.SetupDB()
+
+	// Initialization template
+	bootstrap.SetupTemplate(tplFS)
 
 	// initialize router
 	router = bootstrap.SetupRoute()

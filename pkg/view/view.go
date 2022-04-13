@@ -1,6 +1,7 @@
 package view
 
 import (
+	"embed"
 	"fmt"
 	"goblong/app/models/category"
 	"goblong/pkg/auth"
@@ -9,12 +10,14 @@ import (
 	"goblong/pkg/route"
 	"html/template"
 	"io"
-	"path/filepath"
+	"io/fs"
 	"strings"
 )
 
 // D represent map[string]interface
 type D map[string]interface{}
+
+var TplFS embed.FS
 
 // Render common view
 func Render(w io.Writer, data D, tplFiles ...string) {
@@ -40,7 +43,7 @@ func RenderTemplate(w io.Writer, name string, data D, tplFiles ...string) {
 	tmpl, err := template.New("").
 		Funcs(template.FuncMap{
 			"RouteName2URL": route.Name2URL,
-		}).ParseFiles(allFiles...)
+		}).ParseFS(TplFS, allFiles...)
 
 	logger.LogError(err)
 
@@ -61,8 +64,8 @@ func getTemplateFiles(tplFiles ...string) []string {
 		tplFiles[i] = viewDir + strings.Replace(f, ".", "/", -1) + ".gohtml"
 	}
 
-	// All layouts
-	layoutFiles, err := filepath.Glob(viewDir + "/layouts/*.gohtml")
+	// All layouts slice
+	layoutFiles, err := fs.Glob(TplFS, viewDir+"layouts/*.gohtml")
 	logger.LogError(err)
 
 	// Append show article page
