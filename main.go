@@ -19,6 +19,9 @@ import (
 //go:embed resources/views/layouts/*
 var tplFS embed.FS
 
+//go:embed public/*
+var staticFS embed.FS
+
 var router *mux.Router
 
 func init() {
@@ -35,7 +38,7 @@ func main() {
 	bootstrap.SetupTemplate(tplFS)
 
 	// initialize router
-	router = bootstrap.SetupRoute()
+	router = bootstrap.SetupRoute(staticFS)
 
 	// Get router name URL example
 	homeURL, _ := router.Get("home").URL()

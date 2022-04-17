@@ -68,10 +68,6 @@ func RegisterWebRoutes(r *mux.Router) {
 	// Logout
 	r.HandleFunc("/auth/logout", middlewares.Auth(auc.Logout)).Methods("post").Name("auth.logout")
 
-	// Static resource
-	r.PathPrefix("/css/").Handler(http.FileServer(http.Dir("./public")))
-	r.PathPrefix("/js/").Handler(http.FileServer(http.Dir("./public")))
-
 	// Middleware force content is HTML
 	//r.Use(middlewares.ForceHTML)
 	r.Use(middlewares.StartSession)
